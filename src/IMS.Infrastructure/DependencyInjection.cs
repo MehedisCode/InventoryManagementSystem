@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using IMS.Infrastructure.Repositories;
 
 namespace IMS.Infrastructure;
 
@@ -28,6 +29,9 @@ public static class DependencyInjection
         .AddDefaultTokenProviders();
 
         services.AddScoped<IJwtService, JwtService>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;
     }

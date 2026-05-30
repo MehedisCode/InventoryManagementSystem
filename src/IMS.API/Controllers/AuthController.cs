@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using IMS.Application.Common;
 using IMS.Application.Features.Auth.Login;
 using IMS.Application.Features.Auth.Register;
