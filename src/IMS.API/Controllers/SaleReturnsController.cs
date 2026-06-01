@@ -1,0 +1,69 @@
+using MediatR;
+using IMS.Application.Common;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using IMS.Application.Features.SalesReturns;
+
+namespace IMS.API.Controllers;
+
+[ApiController]
+[Route("api/sale-returns")]
+[Authorize]
+public class SaleReturnsController(IMediator mediator) : ControllerBase
+{
+    [HttpGet]
+    public async Task<ActionResult<ApiResponse<List<SaleReturnListDto>>>> GetAll(CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new GetAllSaleReturnsQuery(), cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<SaleReturnDetailDto>>> GetById(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new GetSaleReturnByIdQuery(id), cancellationToken);
+        if (!result.Success) return NotFound(result);
+        return Ok(result);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<ApiResponse<Guid>>> Create([FromBody] CreateSaleReturnCommand command, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(command, cancellationToken);
+        if (!result.Success) return BadRequest(result);
+        return CreatedAtAction(nameof(GetById), new { id = result.Data }, result);
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<bool>>> Update(Guid id, [FromBody] UpdateSaleReturnCommand command, CancellationToken cancellationToken)
+    {
+        command.Id = id;
+        var result = await mediator.Send(command, cancellationToken);
+        if (!result.Success) return BadRequest(result);
+        return Ok(result);
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new DeleteSaleReturnCommand(id), cancellationToken);
+        if (!result.Success) return NotFound(result);
+        return Ok(result);
+    }
+
+    [HttpPost("{id:guid}/approve")]
+    public async Task<ActionResult<ApiResponse<bool>>> Approve(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new ApproveSaleReturnCommand(id), cancellationToken);
+        if (!result.Success) return BadRequest(result);
+        return Ok(result);
+    }
+
+    [HttpPost("{id:guid}/reject")]
+    public async Task<ActionResult<ApiResponse<bool>>> Reject(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new RejectSaleReturnCommand(id), cancellationToken);
+        if (!result.Success) return BadRequest(result);
+        return Ok(result);
+    }
+}

@@ -3,40 +3,37 @@ using IMS.Infrastructure.Persistence;
 
 namespace IMS.Infrastructure.Repositories;
 
-public class UnitOfWork : IUnitOfWork
+public class UnitOfWork(ApplicationDbContext context) : IUnitOfWork
 {
-    private readonly ApplicationDbContext _context;
-
     private ICategoryRepository? _categories;
     private IProductRepository? _products;
     private ISupplierRepository? _suppliers;
     private IPurchaseRepository? _purchases;
     private ICustomerRepository? _customers;
     private ISaleRepository? _sales;
-
-    public UnitOfWork(ApplicationDbContext context)
-    {
-        _context = context;
-    }
+    private ISaleReturnRepository? _saleReturn;
 
     public ICategoryRepository Categories
-        => _categories ??= new CategoryRepository(_context);
+        => _categories ??= new CategoryRepository(context);
 
     public IProductRepository Products
-        => _products ??= new ProductRepository(_context);
+        => _products ??= new ProductRepository(context);
 
     public ISupplierRepository Suppliers
-        => _suppliers ??= new SupplierRepository(_context);
+        => _suppliers ??= new SupplierRepository(context);
 
     public IPurchaseRepository Purchases
-        => _purchases ??= new PurchaseRepository(_context);
+        => _purchases ??= new PurchaseRepository(context);
 
     public ICustomerRepository Customers
-        => _customers ??= new CustomerRepository(_context);
+        => _customers ??= new CustomerRepository(context);
 
     public ISaleRepository Sales
-        => _sales ??= new SaleRepository(_context);
+        => _sales ??= new SaleRepository(context);
+
+    public ISaleReturnRepository SaleReturns
+        => _saleReturn ??= new SaleReturnRepository(context);
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-        => await _context.SaveChangesAsync(cancellationToken);
+        => await context.SaveChangesAsync(cancellationToken);
 }
