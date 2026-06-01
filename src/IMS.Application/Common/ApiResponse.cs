@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace IMS.Application.Common;
 
 public class ApiResponse<T>
@@ -16,6 +14,6 @@ public class ApiResponse<T>
 
     public static ApiResponse<T> ErrorResponse(string message, List<string>? errors = null)
     {
-        return new ApiResponse<T> { Success = false, Message = message, Errors = errors ?? new List<string>() };
+        return new ApiResponse<T> { Success = false, Message = message, Errors = errors ?? [] };
     }
 }
