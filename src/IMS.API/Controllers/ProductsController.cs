@@ -11,26 +11,19 @@ namespace IMS.API.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public class ProductsController : ControllerBase
+public class ProductsController(IMediator mediator) : ControllerBase
 {
-    private readonly IMediator _mediator;
-
-    public ProductsController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
-
     [HttpGet]
     public async Task<ActionResult<ApiResponse<List<ProductDto>>>> GetAll()
     {
-        var response = await _mediator.Send(new GetAllProductsQuery());
+        var response = await mediator.Send(new GetAllProductsQuery());
         return Ok(response);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
     public async Task<ActionResult<ApiResponse<ProductDto>>> GetById(Guid id)
     {
-        var response = await _mediator.Send(new GetProductByIdQuery(id));
+        var response = await mediator.Send(new GetProductByIdQuery(id));
         if (!response.Success)
             return NotFound(response);
 
@@ -40,48 +33,37 @@ public class ProductsController : ControllerBase
     [HttpGet("low-stock")]
     public async Task<ActionResult<ApiResponse<List<ProductDto>>>> GetLowStock()
     {
-        var response = await _mediator.Send(new GetLowStockProductsQuery());
+        var response = await mediator.Send(new GetLowStockProductsQuery());
         return Ok(response);
     }
 
     [HttpPost]
     public async Task<ActionResult<ApiResponse<Guid>>> Create([FromBody] CreateProductCommand command)
     {
-        var response = await _mediator.Send(command);
+        var response = await mediator.Send(command);
         if (!response.Success)
             return BadRequest(response);
 
         return CreatedAtAction(nameof(GetById), new { id = response.Data }, response);
     }
 
-    [HttpPut("{id}")]
-    public async Task<ActionResult<ApiResponse<bool>>> Update(Guid id, [FromBody] UpdateProductRequest request)
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<bool>>> Update(Guid id, [FromBody] UpdateProductCommand command)
     {
-        var command = new UpdateProductCommand(
-            Id: id,
-            Name: request.Name,
-            SKU: request.SKU,
-            Description: request.Description,
-            CategoryId: request.CategoryId,
-            UnitId: request.UnitId,
-            CostPrice: request.CostPrice,
-            SalePrice: request.SalePrice,
-            StockQuantity: request.StockQuantity,
-            AlertQuantity: request.AlertQuantity,
-            ImageUrl: request.ImageUrl
-        );
+        if (id != command.Id) return BadRequest(ApiResponse<bool>.ErrorResponse("ID mismatch."));
 
-        var response = await _mediator.Send(command);
+
+        var response = await mediator.Send(command);
         if (!response.Success)
             return NotFound(response);
 
         return Ok(response);
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id)
     {
-        var response = await _mediator.Send(new DeleteProductCommand(id));
+        var response = await mediator.Send(new DeleteProductCommand(id));
         if (!response.Success)
             return NotFound(response);
 

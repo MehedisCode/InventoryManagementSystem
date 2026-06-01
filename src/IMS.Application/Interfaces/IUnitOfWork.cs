@@ -6,6 +6,8 @@ public interface IUnitOfWork
     IProductRepository Products { get; }
     ISupplierRepository Suppliers { get; }
     IPurchaseRepository Purchases { get; }
+    ICustomerRepository Customers { get; }
+    ISaleRepository Sales { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -18,7 +18,7 @@ public class PurchasesController(IMediator mediator) : ControllerBase
         return Ok(response);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
     public async Task<ActionResult<ApiResponse<PurchaseDetailDto>>> GetById(Guid id)
     {
         var response = await mediator.Send(new GetPurchaseByIdQuery(id));
@@ -34,7 +34,7 @@ public class PurchasesController(IMediator mediator) : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = response.Data }, response);
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:guid}")]
     public async Task<ActionResult<ApiResponse<bool>>> Update(Guid id, [FromBody] UpdatePurchaseCommand command)
     {
         if (id != command.Id) return BadRequest(ApiResponse<bool>.ErrorResponse("ID mismatch."));
@@ -43,7 +43,7 @@ public class PurchasesController(IMediator mediator) : ControllerBase
         return Ok(response);
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id)
     {
         var response = await mediator.Send(new DeletePurchaseCommand(id));
