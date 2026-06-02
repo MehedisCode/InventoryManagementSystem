@@ -5,16 +5,16 @@ namespace IMS.Infrastructure.Repositories;
 
 public class UnitOfWork(ApplicationDbContext context) : IUnitOfWork
 {
-    private ICategoryRepository? _categories;
     private IProductRepository? _products;
     private ISupplierRepository? _suppliers;
     private IPurchaseRepository? _purchases;
     private ICustomerRepository? _customers;
     private ISaleRepository? _sales;
-    private ISaleReturnRepository? _saleReturn;
+    private ISaleReturnRepository? _saleReturns;
+    private IBalanceTransferRepository? _balanceTransfers;
 
     public ICategoryRepository Categories
-        => _categories ??= new CategoryRepository(context);
+        => field ??= new CategoryRepository(context);
 
     public IProductRepository Products
         => _products ??= new ProductRepository(context);
@@ -32,7 +32,10 @@ public class UnitOfWork(ApplicationDbContext context) : IUnitOfWork
         => _sales ??= new SaleRepository(context);
 
     public ISaleReturnRepository SaleReturns
-        => _saleReturn ??= new SaleReturnRepository(context);
+        => _saleReturns ??= new SaleReturnRepository(context);
+
+    public IBalanceTransferRepository BalanceTransfers
+        => _balanceTransfers ??= new BalanceTransferRepository(context);
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         => await context.SaveChangesAsync(cancellationToken);
