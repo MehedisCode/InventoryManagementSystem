@@ -15,6 +15,14 @@ public class SaleRepository : GenericRepository<Sale>, ISaleRepository
             .Include(s => s.Customer)
             .ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<Sale>> GetAllWithDetailsAsync(CancellationToken cancellationToken = default)
+        => await _dbSet
+            .AsNoTracking()
+            .Include(s => s.Customer)
+            .Include(s => s.SaleItems)
+                .ThenInclude(si => si.Product)
+            .ToListAsync(cancellationToken);
+
     public async Task<Sale?> GetByIdWithDetailsAsync(Guid id, CancellationToken cancellationToken = default)
         => await _dbSet
             .Include(s => s.Customer)
