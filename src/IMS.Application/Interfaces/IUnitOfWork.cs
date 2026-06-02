@@ -10,6 +10,7 @@ public interface IUnitOfWork
     ISaleRepository Sales { get; }
     ISaleReturnRepository SaleReturns { get; }
     IBalanceTransferRepository BalanceTransfers { get; }
+    IQuotationRepository Quotations { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
