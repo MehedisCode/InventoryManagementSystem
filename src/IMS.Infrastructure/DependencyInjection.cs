@@ -38,6 +38,9 @@ public static class DependencyInjection
         services.AddScoped<ISaleReturnRepository, SaleReturnRepository>();
         services.AddScoped<IBalanceTransferRepository, BalanceTransferRepository>();
         services.AddScoped<IQuotationRepository, QuotationRepository>();
+        services.AddScoped<IUnitRepository, UnitRepository>();
+        services.AddScoped<ICurrencyRepository, CurrencyRepository>();
+        services.AddScoped<ICompanyRepository, CompanyRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;

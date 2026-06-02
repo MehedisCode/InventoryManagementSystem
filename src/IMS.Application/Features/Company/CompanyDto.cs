@@ -1,0 +1,14 @@
+namespace IMS.Application.Features.Company;
+
+public class CompanyDto
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+    public string Address { get; set; } = string.Empty;
+    public string LogoUrl { get; set; } = string.Empty;
+    public Guid CurrencyId { get; set; }
+    public string CurrencyName { get; set; } = string.Empty;
+    public string CurrencySymbol { get; set; } = string.Empty;
+}

@@ -14,6 +14,9 @@ public class UnitOfWork(ApplicationDbContext context) : IUnitOfWork
     private ISaleReturnRepository? _saleReturns;
     private IBalanceTransferRepository? _balanceTransfers;
     private IQuotationRepository? _quotations;
+    private IUnitRepository? _units;
+    private ICurrencyRepository? _currencies;
+    private ICompanyRepository? _company;
 
     public ICategoryRepository Categories
         => _categories ??= new CategoryRepository(context);
@@ -41,6 +44,15 @@ public class UnitOfWork(ApplicationDbContext context) : IUnitOfWork
 
     public IQuotationRepository Quotations
         => _quotations ??= new QuotationRepository(context);
+
+    public IUnitRepository Units
+        => _units ??= new UnitRepository(context);
+
+    public ICurrencyRepository Currencies
+        => _currencies ??= new CurrencyRepository(context);
+
+    public ICompanyRepository Company
+        => _company ??= new CompanyRepository(context);
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         => await context.SaveChangesAsync(cancellationToken);
