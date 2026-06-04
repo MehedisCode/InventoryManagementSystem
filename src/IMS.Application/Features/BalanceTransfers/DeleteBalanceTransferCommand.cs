@@ -1,6 +1,7 @@
+using MediatR;
+using IMS.Domain.Exceptions;
 using IMS.Application.Common;
 using IMS.Application.Interfaces;
-using MediatR;
 
 namespace IMS.Application.Features.BalanceTransfers;
 
@@ -15,7 +16,7 @@ public class DeleteBalanceTransferCommandHandler(IUnitOfWork unitOfWork) : IRequ
     {
         var transfer = await unitOfWork.BalanceTransfers.GetByIdAsync(request.Id, cancellationToken);
         if (transfer == null)
-            return ApiResponse<bool>.ErrorResponse("Balance transfer not found.");
+            throw new NotFoundException("Balance transfer not found.", "ID");
 
         await unitOfWork.BalanceTransfers.DeleteAsync(transfer, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -23,3 +24,4 @@ public class DeleteBalanceTransferCommandHandler(IUnitOfWork unitOfWork) : IRequ
         return ApiResponse<bool>.SuccessResponse(true, "Balance transfer deleted successfully.");
     }
 }
+

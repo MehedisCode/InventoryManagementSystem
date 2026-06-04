@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using MediatR;
 
@@ -15,7 +16,7 @@ public class DeleteCurrencyCommandHandler(IUnitOfWork unitOfWork) : IRequestHand
     {
         var currency = await unitOfWork.Currencies.GetByIdAsync(request.Id, cancellationToken);
         if (currency == null)
-            return ApiResponse<bool>.ErrorResponse("Currency not found.");
+            throw new NotFoundException("Currency not found.", "ID");
 
         await unitOfWork.Currencies.DeleteAsync(currency, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -23,3 +24,4 @@ public class DeleteCurrencyCommandHandler(IUnitOfWork unitOfWork) : IRequestHand
         return ApiResponse<bool>.SuccessResponse(true, "Currency deleted successfully.");
     }
 }
+

@@ -27,3 +27,4 @@ public class GetAllSalesQueryHandler(IUnitOfWork unitOfWork) : IRequestHandler<G
         return ApiResponse<List<SaleListDto>>.SuccessResponse(result);
     }
 }
+

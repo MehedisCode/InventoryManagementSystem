@@ -1,5 +1,6 @@
 using FluentValidation;
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using IMS.Domain.Entities;
 using IMS.Domain.Enums;
@@ -38,10 +39,10 @@ public class UpdateSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
     {
         var saleReturn = await unitOfWork.SaleReturns.GetByIdWithDetailsAsync(request.Id, cancellationToken);
         if (saleReturn == null)
-            return ApiResponse<bool>.ErrorResponse("Sale return not found.");
+            throw new NotFoundException("Sale return not found.", "ID");
 
         if (saleReturn.Status != ReturnStatus.Pending)
-            return ApiResponse<bool>.ErrorResponse("Only pending returns can be updated.");
+            throw new BusinessRuleException("Only pending returns can be updated.");
 
         // Reverse previous stock increases
         foreach (var oldItem in saleReturn.SaleReturnItems.ToList())
@@ -70,10 +71,9 @@ public class UpdateSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
             foreach (var item in request.Items)
             {
                 if (!saleQtyByProduct.TryGetValue(item.ProductId, out var maxQty))
-                    return ApiResponse<bool>.ErrorResponse($"Product {item.ProductId} was not part of the original sale.");
+                    throw new BusinessRuleException($"Product {item.ProductId} was not part of the original sale.");
                 if (item.Quantity > maxQty)
-                    return ApiResponse<bool>.ErrorResponse(
-                        $"Return quantity ({item.Quantity}) exceeds original sale quantity ({maxQty}) for product {item.ProductId}.");
+                    throw new BusinessRuleException($"Return quantity ({item.Quantity}) exceeds original sale quantity ({maxQty}) for product {item.ProductId}.");
             }
         }
 
@@ -84,7 +84,7 @@ public class UpdateSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
         foreach (var itemDto in request.Items)
         {
             if (!products.TryGetValue(itemDto.ProductId, out var product))
-                return ApiResponse<bool>.ErrorResponse($"Product {itemDto.ProductId} not found.");
+                throw new BusinessRuleException($"Product {itemDto.ProductId} not found.");
 
             var subTotal = itemDto.Quantity * itemDto.UnitPrice;
             totalAmount += subTotal;
@@ -113,3 +113,4 @@ public class UpdateSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
         return ApiResponse<bool>.SuccessResponse(true, "Sale return updated successfully.");
     }
 }
+

@@ -1,5 +1,6 @@
 using FluentValidation;
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using MediatR;
 
@@ -26,28 +27,22 @@ public class UpdateSupplierCommandValidator : AbstractValidator<UpdateSupplierCo
     }
 }
 
-public class UpdateSupplierCommandHandler : IRequestHandler<UpdateSupplierCommand, ApiResponse<bool>>
+public class UpdateSupplierCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<UpdateSupplierCommand, ApiResponse<bool>>
 {
-    private readonly IUnitOfWork _unitOfWork;
-
-    public UpdateSupplierCommandHandler(IUnitOfWork unitOfWork)
-    {
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<ApiResponse<bool>> Handle(UpdateSupplierCommand request, CancellationToken cancellationToken)
     {
-        var supplier = await _unitOfWork.Suppliers.GetByIdAsync(request.Id, cancellationToken);
-        if (supplier == null) return ApiResponse<bool>.ErrorResponse("Supplier not found.");
+        var supplier = await unitOfWork.Suppliers.GetByIdAsync(request.Id, cancellationToken);
+        if (supplier == null) throw new NotFoundException("Supplier not found.", "ID");
 
         supplier.Name = request.Name;
         supplier.Email = request.Email;
         supplier.Phone = request.Phone;
         supplier.Address = request.Address;
 
-        await _unitOfWork.Suppliers.UpdateAsync(supplier, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.Suppliers.UpdateAsync(supplier, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return ApiResponse<bool>.SuccessResponse(true, "Supplier updated successfully.");
     }
 }
+

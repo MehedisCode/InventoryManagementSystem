@@ -1,5 +1,6 @@
 using FluentValidation;
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using IMS.Domain.Entities;
 using IMS.Domain.Enums;
@@ -44,7 +45,7 @@ public class UpdateSaleCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<
     {
         var sale = await unitOfWork.Sales.GetByIdWithDetailsAsync(request.Id, cancellationToken);
         if (sale == null)
-            return ApiResponse<bool>.ErrorResponse("Sale not found.");
+            throw new NotFoundException("Sale not found.", "ID");
 
         // Reverse previous stock deductions
         foreach (var oldItem in sale.SaleItems.ToList())
@@ -65,11 +66,10 @@ public class UpdateSaleCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<
         foreach (var itemDto in request.Items)
         {
             if (!products.TryGetValue(itemDto.ProductId, out var product))
-                return ApiResponse<bool>.ErrorResponse($"Product with ID {itemDto.ProductId} not found.");
+                throw new BusinessRuleException($"Product with ID {itemDto.ProductId} not found.");
 
             if (product.StockQuantity < itemDto.Quantity)
-                return ApiResponse<bool>.ErrorResponse(
-                    $"Insufficient stock for product '{product.Name}'. Available: {product.StockQuantity}, Requested: {itemDto.Quantity}.");
+                throw new BusinessRuleException($"Insufficient stock for product '{product.Name}'. Available: {product.StockQuantity}, Requested: {itemDto.Quantity}.");
         }
 
         // Clear old items and build new ones
@@ -111,3 +111,4 @@ public class UpdateSaleCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<
         return ApiResponse<bool>.SuccessResponse(true, "Sale updated successfully.");
     }
 }
+

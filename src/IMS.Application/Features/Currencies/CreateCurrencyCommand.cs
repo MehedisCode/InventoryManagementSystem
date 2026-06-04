@@ -40,3 +40,4 @@ public class CreateCurrencyCommandHandler(IUnitOfWork unitOfWork) : IRequestHand
         return ApiResponse<Guid>.SuccessResponse(currency.Id, "Currency created successfully.");
     }
 }
+

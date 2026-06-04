@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -16,16 +17,16 @@ public class DeleteRoleCommandHandler(RoleManager<IdentityRole> roleManager, Use
     {
         var role = await roleManager.FindByIdAsync(request.Id);
         if (role == null)
-            return ApiResponse<bool>.ErrorResponse("Role not found.");
+            throw new NotFoundException("Role not found.", "ID");
 
         if (role.Name is "Admin" or "Manager" or "Staff")
-            return ApiResponse<bool>.ErrorResponse("Cannot delete default system roles.");
+            throw new BusinessRuleException("Cannot delete default system roles.");
 
         if (role.Name != null)
         {
             var usersInRole = await userManager.GetUsersInRoleAsync(role.Name);
             if (usersInRole.Any())
-                return ApiResponse<bool>.ErrorResponse("Cannot delete role that has assigned users.");
+                throw new BusinessRuleException("Cannot delete role that has assigned users.");
         }
 
         var result = await roleManager.DeleteAsync(role);
@@ -33,9 +34,10 @@ public class DeleteRoleCommandHandler(RoleManager<IdentityRole> roleManager, Use
         if (!result.Succeeded)
         {
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            return ApiResponse<bool>.ErrorResponse($"Failed to delete role: {errors}");
+            throw new BusinessRuleException($"Failed to delete role: {errors}");
         }
 
         return ApiResponse<bool>.SuccessResponse(true, "Role deleted successfully.");
     }
 }
+

@@ -1,7 +1,8 @@
 using FluentValidation;
+using MediatR;
+using IMS.Domain.Exceptions;
 using IMS.Application.Common;
 using IMS.Application.Interfaces;
-using MediatR;
 
 namespace IMS.Application.Features.Customers;
 
@@ -32,7 +33,7 @@ public class UpdateCustomerCommandHandler(IUnitOfWork unitOfWork) : IRequestHand
     {
         var customer = await unitOfWork.Customers.GetByIdAsync(request.Id, cancellationToken);
         if (customer == null)
-            return ApiResponse<bool>.ErrorResponse("Customer not found.");
+            throw new NotFoundException("Customer not found.", "ID");
 
         customer.Name = request.Name;
         customer.Email = request.Email;
@@ -45,3 +46,4 @@ public class UpdateCustomerCommandHandler(IUnitOfWork unitOfWork) : IRequestHand
         return ApiResponse<bool>.SuccessResponse(true, "Customer updated successfully.");
     }
 }
+

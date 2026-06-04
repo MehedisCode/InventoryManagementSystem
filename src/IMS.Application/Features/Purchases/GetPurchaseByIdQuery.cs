@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using MediatR;
 
@@ -15,7 +16,7 @@ public class GetPurchaseByIdQueryHandler(IUnitOfWork unitOfWork) : IRequestHandl
     {
         var purchase = await unitOfWork.Purchases.GetByIdWithDetailsAsync(request.Id, cancellationToken);
 
-        if (purchase == null) return ApiResponse<PurchaseDetailDto>.ErrorResponse("Purchase not found.");
+        if (purchase == null) throw new NotFoundException("Purchase not found.", "ID");
 
         var result = new PurchaseDetailDto
         {

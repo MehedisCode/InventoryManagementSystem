@@ -1,5 +1,6 @@
 using FluentValidation;
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -29,16 +30,17 @@ public class ChangePasswordCommandHandler(UserManager<ApplicationUser> userManag
     {
         var user = await userManager.FindByIdAsync(request.Id);
         if (user == null)
-            return ApiResponse<bool>.ErrorResponse("User not found.");
+            throw new NotFoundException("User not found.", "ID");
 
         var result = await userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
 
         if (!result.Succeeded)
         {
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            return ApiResponse<bool>.ErrorResponse($"Failed to change password: {errors}");
+            throw new BusinessRuleException($"Failed to change password: {errors}");
         }
 
         return ApiResponse<bool>.SuccessResponse(true, "Password changed successfully.");
     }
 }
+

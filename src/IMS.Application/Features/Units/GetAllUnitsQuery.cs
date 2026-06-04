@@ -22,3 +22,4 @@ public class GetAllUnitsQueryHandler(IUnitOfWork unitOfWork) : IRequestHandler<G
         return ApiResponse<List<UnitDto>>.SuccessResponse(result);
     }
 }
+

@@ -1,6 +1,7 @@
+using MediatR;
+using IMS.Domain.Exceptions;
 using IMS.Application.Common;
 using IMS.Application.Interfaces;
-using MediatR;
 
 namespace IMS.Application.Features.Quotations;
 
@@ -9,13 +10,14 @@ public class GetQuotationByIdQuery(Guid id) : IRequest<ApiResponse<QuotationDeta
     public Guid Id { get; set; } = id;
 }
 
-public class GetQuotationByIdQueryHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetQuotationByIdQuery, ApiResponse<QuotationDetailDto>>
+public class GetQuotationByIdQueryHandler(IUnitOfWork unitOfWork)
+    : IRequestHandler<GetQuotationByIdQuery, ApiResponse<QuotationDetailDto>>
 {
     public async Task<ApiResponse<QuotationDetailDto>> Handle(GetQuotationByIdQuery request, CancellationToken cancellationToken)
     {
         var q = await unitOfWork.Quotations.GetByIdWithDetailsAsync(request.Id, cancellationToken);
         if (q == null)
-            return ApiResponse<QuotationDetailDto>.ErrorResponse("Quotation not found.");
+            throw new NotFoundException("Quotation not found.", "ID");
 
         var result = new QuotationDetailDto
         {
@@ -42,3 +44,4 @@ public class GetQuotationByIdQueryHandler(IUnitOfWork unitOfWork) : IRequestHand
         return ApiResponse<QuotationDetailDto>.SuccessResponse(result);
     }
 }
+

@@ -1,5 +1,6 @@
 using MediatR;
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using Microsoft.AspNetCore.Identity;
 
 namespace IMS.Application.Features.Roles;
@@ -15,7 +16,7 @@ public class GetRoleByIdQueryHandler(RoleManager<IdentityRole> roleManager) : IR
     {
         var role = await roleManager.FindByIdAsync(request.Id);
         if (role == null)
-            return ApiResponse<RoleDto>.ErrorResponse("Role not found.");
+            throw new NotFoundException("Role not found.", "ID");
 
         var result = new RoleDto
         {
@@ -27,3 +28,4 @@ public class GetRoleByIdQueryHandler(RoleManager<IdentityRole> roleManager) : IR
         return ApiResponse<RoleDto>.SuccessResponse(result);
     }
 }
+

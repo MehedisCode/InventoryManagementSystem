@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using MediatR;
 
@@ -15,7 +16,7 @@ public class GetSaleByIdQueryHandler(IUnitOfWork unitOfWork) : IRequestHandler<G
     {
         var sale = await unitOfWork.Sales.GetByIdWithDetailsAsync(request.Id, cancellationToken);
         if (sale == null)
-            return ApiResponse<SaleDetailDto>.ErrorResponse("Sale not found.");
+            throw new NotFoundException("Sale not found.", "ID");
 
         var result = new SaleDetailDto
         {
@@ -43,3 +44,4 @@ public class GetSaleByIdQueryHandler(IUnitOfWork unitOfWork) : IRequestHandler<G
         return ApiResponse<SaleDetailDto>.SuccessResponse(result);
     }
 }
+

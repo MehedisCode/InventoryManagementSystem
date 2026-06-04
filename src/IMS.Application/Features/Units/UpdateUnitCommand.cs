@@ -1,5 +1,6 @@
 using FluentValidation;
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using MediatR;
 
@@ -28,7 +29,7 @@ public class UpdateUnitCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<
     {
         var unit = await unitOfWork.Units.GetByIdAsync(request.Id, cancellationToken);
         if (unit == null)
-            return ApiResponse<bool>.ErrorResponse("Unit not found.");
+            throw new NotFoundException("Unit not found.", "ID");
 
         unit.Name = request.Name;
         unit.ShortName = request.ShortName;
@@ -39,3 +40,4 @@ public class UpdateUnitCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<
         return ApiResponse<bool>.SuccessResponse(true, "Unit updated successfully.");
     }
 }
+

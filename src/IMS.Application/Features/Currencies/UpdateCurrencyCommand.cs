@@ -1,5 +1,6 @@
 using FluentValidation;
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using MediatR;
 
@@ -30,7 +31,7 @@ public class UpdateCurrencyCommandHandler(IUnitOfWork unitOfWork) : IRequestHand
     {
         var currency = await unitOfWork.Currencies.GetByIdAsync(request.Id, cancellationToken);
         if (currency == null)
-            return ApiResponse<bool>.ErrorResponse("Currency not found.");
+            throw new NotFoundException("Currency not found.", "ID");
 
         currency.Name = request.Name;
         currency.Code = request.Code;
@@ -42,3 +43,4 @@ public class UpdateCurrencyCommandHandler(IUnitOfWork unitOfWork) : IRequestHand
         return ApiResponse<bool>.SuccessResponse(true, "Currency updated successfully.");
     }
 }
+

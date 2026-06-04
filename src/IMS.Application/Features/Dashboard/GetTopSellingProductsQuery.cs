@@ -35,3 +35,4 @@ public class GetTopSellingProductsQueryHandler(IUnitOfWork unitOfWork)
         return ApiResponse<List<TopProductDto>>.SuccessResponse(topProducts);
     }
 }
+

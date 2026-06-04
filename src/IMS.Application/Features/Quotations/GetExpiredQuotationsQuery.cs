@@ -1,13 +1,14 @@
+using MediatR;
+using IMS.Domain.Enums;
 using IMS.Application.Common;
 using IMS.Application.Interfaces;
-using IMS.Domain.Enums;
-using MediatR;
 
 namespace IMS.Application.Features.Quotations;
 
 public class GetExpiredQuotationsQuery : IRequest<ApiResponse<List<QuotationListDto>>>;
 
-public class GetExpiredQuotationsQueryHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetExpiredQuotationsQuery, ApiResponse<List<QuotationListDto>>>
+public class GetExpiredQuotationsQueryHandler(IUnitOfWork unitOfWork)
+    : IRequestHandler<GetExpiredQuotationsQuery, ApiResponse<List<QuotationListDto>>>
 {
     public async Task<ApiResponse<List<QuotationListDto>>> Handle(GetExpiredQuotationsQuery request, CancellationToken cancellationToken)
     {
@@ -30,3 +31,4 @@ public class GetExpiredQuotationsQueryHandler(IUnitOfWork unitOfWork) : IRequest
         return ApiResponse<List<QuotationListDto>>.SuccessResponse(expired);
     }
 }
+

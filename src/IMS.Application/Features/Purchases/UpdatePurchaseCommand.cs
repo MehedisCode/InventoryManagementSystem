@@ -1,5 +1,6 @@
 using FluentValidation;
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using IMS.Domain.Entities;
 using IMS.Domain.Enums;
@@ -41,7 +42,7 @@ public class UpdatePurchaseCommandHandler(IUnitOfWork unitOfWork) : IRequestHand
     {
         var purchase = await unitOfWork.Purchases.GetByIdWithDetailsAsync(request.Id, cancellationToken);
 
-        if (purchase == null) return ApiResponse<bool>.ErrorResponse("Purchase not found.");
+        if (purchase == null) throw new NotFoundException("Purchase not found.", "ID");
 
         foreach (var oldItem in purchase.PurchaseItems.ToList())
         {
@@ -64,7 +65,7 @@ public class UpdatePurchaseCommandHandler(IUnitOfWork unitOfWork) : IRequestHand
         foreach (var itemDto in request.Items)
         {
             if (!products.TryGetValue(itemDto.ProductId, out var product))
-                return ApiResponse<bool>.ErrorResponse($"Product with ID {itemDto.ProductId} not found.");
+                throw new BusinessRuleException($"Product with ID {itemDto.ProductId} not found.");
 
             var subTotal = itemDto.Quantity * itemDto.UnitCost;
             totalAmount += subTotal;

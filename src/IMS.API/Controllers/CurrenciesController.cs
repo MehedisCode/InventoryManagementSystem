@@ -22,7 +22,7 @@ public class CurrenciesController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<CurrencyDto>>> GetById(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetCurrencyByIdQuery(id), cancellationToken);
-        if (!result.Success) return NotFound(result);
+
         return Ok(result);
     }
 
@@ -30,7 +30,7 @@ public class CurrenciesController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<Guid>>> Create([FromBody] CreateCurrencyCommand command, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(command, cancellationToken);
-        if (!result.Success) return BadRequest(result);
+
         return CreatedAtAction(nameof(GetById), new { id = result.Data }, result);
     }
 
@@ -39,7 +39,7 @@ public class CurrenciesController(IMediator mediator) : ControllerBase
     {
         command.Id = id;
         var result = await mediator.Send(command, cancellationToken);
-        if (!result.Success) return BadRequest(result);
+
         return Ok(result);
     }
 
@@ -47,7 +47,8 @@ public class CurrenciesController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new DeleteCurrencyCommand(id), cancellationToken);
-        if (!result.Success) return NotFound(result);
+
         return Ok(result);
     }
 }
+

@@ -1,6 +1,7 @@
+using MediatR;
+using IMS.Domain.Exceptions;
 using IMS.Application.Common;
 using IMS.Application.Interfaces;
-using MediatR;
 
 namespace IMS.Application.Features.Purchases;
 
@@ -15,7 +16,7 @@ public class DeletePurchaseCommandHandler(IUnitOfWork unitOfWork) : IRequestHand
     {
         var purchase = await unitOfWork.Purchases.GetByIdWithDetailsAsync(request.Id, cancellationToken);
 
-        if (purchase == null) return ApiResponse<bool>.ErrorResponse("Purchase not found.");
+        if (purchase == null) throw new NotFoundException("Purchase not found.", "ID");
 
         foreach (var item in purchase.PurchaseItems)
         {
@@ -34,3 +35,4 @@ public class DeletePurchaseCommandHandler(IUnitOfWork unitOfWork) : IRequestHand
         return ApiResponse<bool>.SuccessResponse(true, "Purchase deleted successfully.");
     }
 }
+

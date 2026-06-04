@@ -22,7 +22,7 @@ public class RolesController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<RoleDto>>> GetById(string id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetRoleByIdQuery(id), cancellationToken);
-        if (!result.Success) return NotFound(result);
+
         return Ok(result);
     }
 
@@ -30,7 +30,7 @@ public class RolesController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<string>>> Create([FromBody] CreateRoleCommand command, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(command, cancellationToken);
-        if (!result.Success) return BadRequest(result);
+
         return CreatedAtAction(nameof(GetById), new { id = result.Data }, result);
     }
 
@@ -39,7 +39,7 @@ public class RolesController(IMediator mediator) : ControllerBase
     {
         command.Id = id;
         var result = await mediator.Send(command, cancellationToken);
-        if (!result.Success) return BadRequest(result);
+
         return Ok(result);
     }
 
@@ -47,7 +47,8 @@ public class RolesController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<bool>>> Delete(string id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new DeleteRoleCommand(id), cancellationToken);
-        if (!result.Success) return BadRequest(result);
+
         return Ok(result);
     }
 }
+

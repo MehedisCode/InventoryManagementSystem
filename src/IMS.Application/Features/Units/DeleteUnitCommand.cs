@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using MediatR;
 
@@ -15,7 +16,7 @@ public class DeleteUnitCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<
     {
         var unit = await unitOfWork.Units.GetByIdAsync(request.Id, cancellationToken);
         if (unit == null)
-            return ApiResponse<bool>.ErrorResponse("Unit not found.");
+            throw new NotFoundException("Unit not found.", "ID");
 
         await unitOfWork.Units.DeleteAsync(unit, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -23,3 +24,4 @@ public class DeleteUnitCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<
         return ApiResponse<bool>.SuccessResponse(true, "Unit deleted successfully.");
     }
 }
+

@@ -1,5 +1,6 @@
 using FluentValidation;
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 
@@ -26,13 +27,13 @@ public class UpdateRoleCommandHandler(RoleManager<IdentityRole> roleManager) : I
     {
         var role = await roleManager.FindByIdAsync(request.Id);
         if (role == null)
-            return ApiResponse<bool>.ErrorResponse("Role not found.");
+            throw new NotFoundException("Role not found.", "ID");
 
         if (role.Name == "Admin" || role.Name == "Manager" || role.Name == "Staff")
-            return ApiResponse<bool>.ErrorResponse("Cannot update default system roles.");
+            throw new BusinessRuleException("Cannot update default system roles.");
 
         if (await roleManager.RoleExistsAsync(request.Name) && role.Name != request.Name)
-            return ApiResponse<bool>.ErrorResponse("Role name already exists.");
+            throw new BusinessRuleException("Role name already exists.");
 
         role.Name = request.Name;
         var result = await roleManager.UpdateAsync(role);
@@ -40,9 +41,10 @@ public class UpdateRoleCommandHandler(RoleManager<IdentityRole> roleManager) : I
         if (!result.Succeeded)
         {
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            return ApiResponse<bool>.ErrorResponse($"Failed to update role: {errors}");
+            throw new BusinessRuleException($"Failed to update role: {errors}");
         }
 
         return ApiResponse<bool>.SuccessResponse(true, "Role updated successfully.");
     }
 }
+

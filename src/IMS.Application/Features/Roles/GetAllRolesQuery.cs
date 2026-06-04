@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -34,3 +35,4 @@ public class GetAllRolesQueryHandler(RoleManager<IdentityRole> roleManager, User
         return ApiResponse<List<RoleDto>>.SuccessResponse(result);
     }
 }
+

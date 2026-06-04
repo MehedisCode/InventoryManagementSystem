@@ -39,3 +39,4 @@ public class GetAllBalanceTransfersQueryHandler(IUnitOfWork unitOfWork) : IReque
         return ApiResponse<List<BalanceTransferDto>>.SuccessResponse(result);
     }
 }
+

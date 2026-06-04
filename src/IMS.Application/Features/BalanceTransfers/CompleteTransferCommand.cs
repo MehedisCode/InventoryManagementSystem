@@ -1,7 +1,8 @@
+using MediatR;
+using IMS.Domain.Enums;
+using IMS.Domain.Exceptions;
 using IMS.Application.Common;
 using IMS.Application.Interfaces;
-using IMS.Domain.Enums;
-using MediatR;
 
 namespace IMS.Application.Features.BalanceTransfers;
 
@@ -16,7 +17,7 @@ public class CompleteTransferCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
     {
         var transfer = await unitOfWork.BalanceTransfers.GetByIdAsync(request.Id, cancellationToken);
         if (transfer == null)
-            return ApiResponse<bool>.ErrorResponse("Balance transfer not found.");
+            throw new NotFoundException("Balance transfer not found.", "ID");
 
         transfer.Status = TransferStatus.Completed;
 
@@ -26,3 +27,4 @@ public class CompleteTransferCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
         return ApiResponse<bool>.SuccessResponse(true, "Balance transfer completed successfully.");
     }
 }
+

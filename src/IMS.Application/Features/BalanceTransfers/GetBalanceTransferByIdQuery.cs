@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using MediatR;
 
@@ -15,7 +16,7 @@ public class GetBalanceTransferByIdQueryHandler(IUnitOfWork unitOfWork) : IReque
     {
         var t = await unitOfWork.BalanceTransfers.GetByIdAsync(request.Id, cancellationToken);
         if (t == null)
-            return ApiResponse<BalanceTransferDto>.ErrorResponse("Balance transfer not found.");
+            throw new NotFoundException("Balance transfer not found.", "ID");
 
         var result = new BalanceTransferDto
         {
@@ -33,3 +34,4 @@ public class GetBalanceTransferByIdQueryHandler(IUnitOfWork unitOfWork) : IReque
         return ApiResponse<BalanceTransferDto>.SuccessResponse(result);
     }
 }
+

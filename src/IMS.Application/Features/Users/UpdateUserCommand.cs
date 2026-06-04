@@ -1,5 +1,6 @@
 using FluentValidation;
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -26,23 +27,24 @@ public class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
     }
 }
 
-public class UpdateUserCommandHandler(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager) : IRequestHandler<UpdateUserCommand, ApiResponse<bool>>
+public class UpdateUserCommandHandler(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+    : IRequestHandler<UpdateUserCommand, ApiResponse<bool>>
 {
     public async Task<ApiResponse<bool>> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
     {
         var user = await userManager.FindByIdAsync(request.Id);
         if (user == null)
-            return ApiResponse<bool>.ErrorResponse("User not found.");
+            throw new NotFoundException("User not found.", "ID");
 
         if (user.Email != request.Email)
         {
             var existingUser = await userManager.FindByEmailAsync(request.Email);
             if (existingUser != null && existingUser.Id != request.Id)
-                return ApiResponse<bool>.ErrorResponse("Email is already taken by another user.");
+                throw new BusinessRuleException("Email is already taken by another user.");
         }
 
         if (!await roleManager.RoleExistsAsync(request.RoleName))
-            return ApiResponse<bool>.ErrorResponse("Specified role does not exist.");
+            throw new BusinessRuleException("Specified role does not exist.");
 
         user.FullName = request.FullName;
         user.Email = request.Email;
@@ -54,7 +56,7 @@ public class UpdateUserCommandHandler(UserManager<ApplicationUser> userManager, 
         if (!result.Succeeded)
         {
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            return ApiResponse<bool>.ErrorResponse($"Failed to update user: {errors}");
+            throw new BusinessRuleException($"Failed to update user: {errors}");
         }
 
         var currentRoles = await userManager.GetRolesAsync(user);
@@ -64,3 +66,4 @@ public class UpdateUserCommandHandler(UserManager<ApplicationUser> userManager, 
         return ApiResponse<bool>.SuccessResponse(true, "User updated successfully.");
     }
 }
+

@@ -1,5 +1,6 @@
 using FluentValidation;
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using IMS.Domain.Entities;
 using IMS.Domain.Enums;
@@ -42,7 +43,7 @@ public class CreateQuotationCommandHandler(IUnitOfWork unitOfWork) : IRequestHan
     {
         var customer = await unitOfWork.Customers.GetByIdAsync(request.CustomerId, cancellationToken);
         if (customer == null)
-            return ApiResponse<Guid>.ErrorResponse("Customer not found.");
+            throw new NotFoundException("Customer not found.", "ID");
 
         var totalAmount = 0m;
         var quotationItems = new List<QuotationItem>();
@@ -60,8 +61,6 @@ public class CreateQuotationCommandHandler(IUnitOfWork unitOfWork) : IRequestHan
                 SubTotal = subTotal
             });
         }
-
-        var dueAmount = totalAmount - request.Discount;
 
         var today = DateTime.UtcNow;
         var count = await unitOfWork.Quotations.CountAsync(q => q.CreatedAt.Date == today.Date, cancellationToken);
@@ -86,3 +85,4 @@ public class CreateQuotationCommandHandler(IUnitOfWork unitOfWork) : IRequestHan
         return ApiResponse<Guid>.SuccessResponse(quotation.Id, "Quotation created successfully.");
     }
 }
+

@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using MediatR;
 
@@ -15,7 +16,7 @@ public class DeleteQuotationCommandHandler(IUnitOfWork unitOfWork) : IRequestHan
     {
         var quotation = await unitOfWork.Quotations.GetByIdAsync(request.Id, cancellationToken);
         if (quotation == null)
-            return ApiResponse<bool>.ErrorResponse("Quotation not found.");
+            throw new NotFoundException("Quotation not found.", "ID");
 
         await unitOfWork.Quotations.DeleteAsync(quotation, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -23,3 +24,4 @@ public class DeleteQuotationCommandHandler(IUnitOfWork unitOfWork) : IRequestHan
         return ApiResponse<bool>.SuccessResponse(true, "Quotation deleted successfully.");
     }
 }
+

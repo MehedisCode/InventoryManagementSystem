@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using MediatR;
 
@@ -15,7 +16,7 @@ public class GetSupplierByIdQueryHandler(IUnitOfWork unitOfWork) : IRequestHandl
     {
         var supplier = await unitOfWork.Suppliers.GetByIdAsync(request.Id, cancellationToken);
         if (supplier == null)
-            return ApiResponse<SupplierDto>.ErrorResponse("Supplier not found.");
+            throw new NotFoundException("Supplier not found.", "ID");
 
         var result = new SupplierDto
         {

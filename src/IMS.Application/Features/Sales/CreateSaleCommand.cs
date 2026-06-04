@@ -1,5 +1,6 @@
 using FluentValidation;
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using IMS.Domain.Entities;
 using IMS.Domain.Enums;
@@ -43,7 +44,7 @@ public class CreateSaleCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<
         // Validate customer exists
         var customer = await unitOfWork.Customers.GetByIdAsync(request.CustomerId, cancellationToken);
         if (customer == null)
-            return ApiResponse<Guid>.ErrorResponse("Customer not found.");
+            throw new NotFoundException("Customer not found.", "ID");
 
         // Load all required products
         var productIds = request.Items.Select(i => i.ProductId).Distinct().ToList();
@@ -54,11 +55,10 @@ public class CreateSaleCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<
         foreach (var itemDto in request.Items)
         {
             if (!products.TryGetValue(itemDto.ProductId, out var product))
-                return ApiResponse<Guid>.ErrorResponse($"Product with ID {itemDto.ProductId} not found.");
+                throw new BusinessRuleException($"Product with ID {itemDto.ProductId} not found.");
 
             if (product.StockQuantity < itemDto.Quantity)
-                return ApiResponse<Guid>.ErrorResponse(
-                    $"Insufficient stock for product '{product.Name}'. Available: {product.StockQuantity}, Requested: {itemDto.Quantity}.");
+                throw new BusinessRuleException($"Insufficient stock for product '{product.Name}'. Available: {product.StockQuantity}, Requested: {itemDto.Quantity}.");
         }
 
         // Build sale items and calculate totals
@@ -111,3 +111,4 @@ public class CreateSaleCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<
         return ApiResponse<Guid>.SuccessResponse(sale.Id, "Sale created successfully.");
     }
 }
+

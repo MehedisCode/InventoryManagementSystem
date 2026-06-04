@@ -22,7 +22,8 @@ public class CompanyController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<bool>>> UpdateSettings([FromBody] UpdateCompanySettingsCommand command, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(command, cancellationToken);
-        if (!result.Success) return BadRequest(result);
+
         return Ok(result);
     }
 }
+

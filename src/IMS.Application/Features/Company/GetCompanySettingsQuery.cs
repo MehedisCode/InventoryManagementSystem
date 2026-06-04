@@ -1,6 +1,6 @@
+using MediatR;
 using IMS.Application.Common;
 using IMS.Application.Interfaces;
-using MediatR;
 
 namespace IMS.Application.Features.Company;
 
@@ -31,3 +31,4 @@ public class GetCompanySettingsQueryHandler(IUnitOfWork unitOfWork) : IRequestHa
         return ApiResponse<CompanyDto>.SuccessResponse(result);
     }
 }
+

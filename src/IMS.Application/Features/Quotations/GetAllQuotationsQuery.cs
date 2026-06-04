@@ -26,3 +26,4 @@ public class GetAllQuotationsQueryHandler(IUnitOfWork unitOfWork) : IRequestHand
         return ApiResponse<List<QuotationListDto>>.SuccessResponse(result);
     }
 }
+

@@ -22,7 +22,7 @@ public class SaleReturnsController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<SaleReturnDetailDto>>> GetById(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetSaleReturnByIdQuery(id), cancellationToken);
-        if (!result.Success) return NotFound(result);
+
         return Ok(result);
     }
 
@@ -30,7 +30,7 @@ public class SaleReturnsController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<Guid>>> Create([FromBody] CreateSaleReturnCommand command, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(command, cancellationToken);
-        if (!result.Success) return BadRequest(result);
+
         return CreatedAtAction(nameof(GetById), new { id = result.Data }, result);
     }
 
@@ -39,7 +39,7 @@ public class SaleReturnsController(IMediator mediator) : ControllerBase
     {
         command.Id = id;
         var result = await mediator.Send(command, cancellationToken);
-        if (!result.Success) return BadRequest(result);
+
         return Ok(result);
     }
 
@@ -47,7 +47,7 @@ public class SaleReturnsController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new DeleteSaleReturnCommand(id), cancellationToken);
-        if (!result.Success) return NotFound(result);
+
         return Ok(result);
     }
 
@@ -55,7 +55,7 @@ public class SaleReturnsController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<bool>>> Approve(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new ApproveSaleReturnCommand(id), cancellationToken);
-        if (!result.Success) return BadRequest(result);
+
         return Ok(result);
     }
 
@@ -63,7 +63,8 @@ public class SaleReturnsController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<bool>>> Reject(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new RejectSaleReturnCommand(id), cancellationToken);
-        if (!result.Success) return BadRequest(result);
+
         return Ok(result);
     }
 }
+

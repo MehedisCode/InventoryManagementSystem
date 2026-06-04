@@ -51,3 +51,4 @@ public class GetMonthlySalesChartQueryHandler(IUnitOfWork unitOfWork) : IRequest
         return ApiResponse<List<MonthlyChartDto>>.SuccessResponse(result);
     }
 }
+

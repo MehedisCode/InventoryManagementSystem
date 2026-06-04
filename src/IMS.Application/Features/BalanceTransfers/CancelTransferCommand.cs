@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using IMS.Domain.Enums;
 using MediatR;
@@ -16,7 +17,7 @@ public class CancelTransferCommandHandler(IUnitOfWork unitOfWork) : IRequestHand
     {
         var transfer = await unitOfWork.BalanceTransfers.GetByIdAsync(request.Id, cancellationToken);
         if (transfer == null)
-            return ApiResponse<bool>.ErrorResponse("Balance transfer not found.");
+            throw new NotFoundException("Balance transfer not found.", "ID");
 
         transfer.Status = TransferStatus.Cancelled;
 

@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using MediatR;
 
@@ -14,7 +15,7 @@ public class DeleteSupplierCommandHandler(IUnitOfWork unitOfWork) : IRequestHand
     public async Task<ApiResponse<bool>> Handle(DeleteSupplierCommand request, CancellationToken cancellationToken)
     {
         var supplier = await unitOfWork.Suppliers.GetByIdAsync(request.Id, cancellationToken);
-        if (supplier == null) return ApiResponse<bool>.ErrorResponse("Supplier not found.");
+        if (supplier == null) throw new NotFoundException("Supplier not found.", "ID");
 
         await unitOfWork.Suppliers.DeleteAsync(supplier, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -22,3 +23,4 @@ public class DeleteSupplierCommandHandler(IUnitOfWork unitOfWork) : IRequestHand
         return ApiResponse<bool>.SuccessResponse(true, "Supplier deleted successfully.");
     }
 }
+

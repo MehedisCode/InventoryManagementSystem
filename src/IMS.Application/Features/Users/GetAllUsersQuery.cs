@@ -1,6 +1,6 @@
-using IMS.Application.Common;
-using IMS.Domain.Entities;
 using MediatR;
+using IMS.Domain.Entities;
+using IMS.Application.Common;
 using Microsoft.AspNetCore.Identity;
 
 namespace IMS.Application.Features.Users;
@@ -33,3 +33,4 @@ public class GetAllUsersQueryHandler(UserManager<ApplicationUser> userManager)
         return ApiResponse<List<UserListDto>>.SuccessResponse(result);
     }
 }
+

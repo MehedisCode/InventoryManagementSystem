@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using MediatR;
 
@@ -15,7 +16,7 @@ public class GetCustomerByIdQueryHandler(IUnitOfWork unitOfWork) : IRequestHandl
     {
         var customer = await unitOfWork.Customers.GetByIdAsync(request.Id, cancellationToken);
         if (customer == null)
-            return ApiResponse<CustomerDto>.ErrorResponse("Customer not found.");
+            throw new NotFoundException("Customer not found.", "ID");
 
         var result = new CustomerDto
         {
@@ -29,3 +30,4 @@ public class GetCustomerByIdQueryHandler(IUnitOfWork unitOfWork) : IRequestHandl
         return ApiResponse<CustomerDto>.SuccessResponse(result);
     }
 }
+

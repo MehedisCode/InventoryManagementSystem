@@ -1,5 +1,6 @@
 using FluentValidation;
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 
@@ -23,7 +24,7 @@ public class CreateRoleCommandHandler(RoleManager<IdentityRole> roleManager) : I
     public async Task<ApiResponse<string>> Handle(CreateRoleCommand request, CancellationToken cancellationToken)
     {
         if (await roleManager.RoleExistsAsync(request.Name))
-            return ApiResponse<string>.ErrorResponse("Role already exists.");
+            throw new BusinessRuleException("Role already exists.");
 
         var role = new IdentityRole { Name = request.Name };
         var result = await roleManager.CreateAsync(role);
@@ -31,9 +32,10 @@ public class CreateRoleCommandHandler(RoleManager<IdentityRole> roleManager) : I
         if (!result.Succeeded)
         {
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            return ApiResponse<string>.ErrorResponse($"Failed to create role: {errors}");
+            throw new BusinessRuleException($"Failed to create role: {errors}");
         }
 
         return ApiResponse<string>.SuccessResponse(role.Id, "Role created successfully.");
     }
 }
+

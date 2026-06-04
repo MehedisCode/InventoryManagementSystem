@@ -22,7 +22,7 @@ public class QuotationsController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<QuotationDetailDto>>> GetById(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetQuotationByIdQuery(id), cancellationToken);
-        if (!result.Success) return NotFound(result);
+
         return Ok(result);
     }
 
@@ -37,7 +37,7 @@ public class QuotationsController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<Guid>>> Create([FromBody] CreateQuotationCommand command, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(command, cancellationToken);
-        if (!result.Success) return BadRequest(result);
+
         return CreatedAtAction(nameof(GetById), new { id = result.Data }, result);
     }
 
@@ -46,7 +46,7 @@ public class QuotationsController(IMediator mediator) : ControllerBase
     {
         command.Id = id;
         var result = await mediator.Send(command, cancellationToken);
-        if (!result.Success) return BadRequest(result);
+
         return Ok(result);
     }
 
@@ -54,7 +54,7 @@ public class QuotationsController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new DeleteQuotationCommand(id), cancellationToken);
-        if (!result.Success) return NotFound(result);
+
         return Ok(result);
     }
 
@@ -62,7 +62,8 @@ public class QuotationsController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<Guid>>> ConvertToSale(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new ConvertToSaleCommand(id), cancellationToken);
-        if (!result.Success) return BadRequest(result);
+
         return Ok(result);
     }
 }
+

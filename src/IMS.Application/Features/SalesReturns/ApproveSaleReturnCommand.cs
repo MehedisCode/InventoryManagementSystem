@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using IMS.Domain.Enums;
 using MediatR;
@@ -16,10 +17,10 @@ public class ApproveSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestH
     {
         var saleReturn = await unitOfWork.SaleReturns.GetByIdAsync(request.Id, cancellationToken);
         if (saleReturn == null)
-            return ApiResponse<bool>.ErrorResponse("Sale return not found.");
+            throw new NotFoundException("Sale return not found.", "ID");
 
         if (saleReturn.Status != ReturnStatus.Pending)
-            return ApiResponse<bool>.ErrorResponse("Only pending returns can be approved.");
+            throw new BusinessRuleException("Only pending returns can be approved.");
 
         saleReturn.Status = ReturnStatus.Approved;
 
@@ -41,10 +42,10 @@ public class RejectSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
     {
         var saleReturn = await unitOfWork.SaleReturns.GetByIdWithDetailsAsync(request.Id, cancellationToken);
         if (saleReturn == null)
-            return ApiResponse<bool>.ErrorResponse("Sale return not found.");
+            throw new NotFoundException("Sale return not found.", "ID");
 
         if (saleReturn.Status == ReturnStatus.Rejected)
-            return ApiResponse<bool>.ErrorResponse("Sale return is already rejected.");
+            throw new BusinessRuleException("Sale return is already rejected.");
 
         // If it was Pending (stock already increased on create), reverse the stock
         if (saleReturn.Status == ReturnStatus.Pending)
@@ -68,3 +69,4 @@ public class RejectSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
         return ApiResponse<bool>.SuccessResponse(true, "Sale return rejected successfully.");
     }
 }
+

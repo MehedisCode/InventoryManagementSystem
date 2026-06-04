@@ -2,6 +2,7 @@ using MediatR;
 using FluentValidation;
 using IMS.Domain.Entities;
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using Microsoft.AspNetCore.Identity;
 
 namespace IMS.Application.Features.Users;
@@ -31,10 +32,10 @@ public class CreateUserCommandHandler(UserManager<ApplicationUser> userManager, 
     {
         var existingUser = await userManager.FindByEmailAsync(request.Email);
         if (existingUser != null)
-            return ApiResponse<string>.ErrorResponse("User with this email already exists.");
+            throw new BusinessRuleException("User with this email already exists.");
 
         if (!await roleManager.RoleExistsAsync(request.RoleName))
-            return ApiResponse<string>.ErrorResponse("Specified role does not exist.");
+            throw new BusinessRuleException("Specified role does not exist.");
 
         var user = new ApplicationUser
         {
@@ -50,7 +51,7 @@ public class CreateUserCommandHandler(UserManager<ApplicationUser> userManager, 
         if (!result.Succeeded)
         {
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            return ApiResponse<string>.ErrorResponse($"Failed to create user: {errors}");
+            throw new BusinessRuleException($"Failed to create user: {errors}");
         }
 
         await userManager.AddToRoleAsync(user, request.RoleName);
@@ -58,3 +59,4 @@ public class CreateUserCommandHandler(UserManager<ApplicationUser> userManager, 
         return ApiResponse<string>.SuccessResponse(user.Id, "User created successfully.");
     }
 }
+

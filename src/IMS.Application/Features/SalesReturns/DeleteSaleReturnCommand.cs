@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using MediatR;
 
@@ -15,7 +16,7 @@ public class DeleteSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
     {
         var saleReturn = await unitOfWork.SaleReturns.GetByIdWithDetailsAsync(request.Id, cancellationToken);
         if (saleReturn == null)
-            return ApiResponse<bool>.ErrorResponse("Sale return not found.");
+            throw new NotFoundException("Sale return not found.", "ID");
 
         // Reverse stock increases before deleting
         foreach (var item in saleReturn.SaleReturnItems)
@@ -34,3 +35,4 @@ public class DeleteSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
         return ApiResponse<bool>.SuccessResponse(true, "Sale return deleted successfully.");
     }
 }
+

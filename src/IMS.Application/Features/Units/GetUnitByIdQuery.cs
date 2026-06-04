@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using MediatR;
 
@@ -15,7 +16,7 @@ public class GetUnitByIdQueryHandler(IUnitOfWork unitOfWork) : IRequestHandler<G
     {
         var unit = await unitOfWork.Units.GetByIdAsync(request.Id, cancellationToken);
         if (unit == null)
-            return ApiResponse<UnitDto>.ErrorResponse("Unit not found.");
+            throw new NotFoundException("Unit not found.", "ID");
 
         var result = new UnitDto
         {
@@ -27,3 +28,4 @@ public class GetUnitByIdQueryHandler(IUnitOfWork unitOfWork) : IRequestHandler<G
         return ApiResponse<UnitDto>.SuccessResponse(result);
     }
 }
+

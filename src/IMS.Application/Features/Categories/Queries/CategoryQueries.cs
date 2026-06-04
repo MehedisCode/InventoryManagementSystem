@@ -1,26 +1,20 @@
-using IMS.Application.Common;
-using IMS.Application.Features.Categories.DTOs;
-using IMS.Application.Interfaces;
 using MediatR;
+using IMS.Domain.Exceptions;
+using IMS.Application.Common;
+using IMS.Application.Interfaces;
+using IMS.Application.Features.Categories.DTOs;
 
 namespace IMS.Application.Features.Categories.Queries;
 
 public record GetAllCategoriesQuery : IRequest<ApiResponse<IReadOnlyList<CategoryDto>>>;
 
-public class GetAllCategoriesQueryHandler
-    : IRequestHandler<GetAllCategoriesQuery, ApiResponse<IReadOnlyList<CategoryDto>>>
+public class GetAllCategoriesQueryHandler(IUnitOfWork uow)
+        : IRequestHandler<GetAllCategoriesQuery, ApiResponse<IReadOnlyList<CategoryDto>>>
 {
-    private readonly IUnitOfWork _uow;
-
-    public GetAllCategoriesQueryHandler(IUnitOfWork uow)
-    {
-        _uow = uow;
-    }
-
     public async Task<ApiResponse<IReadOnlyList<CategoryDto>>> Handle(
         GetAllCategoriesQuery request, CancellationToken cancellationToken)
     {
-        var categories = await _uow.Categories.GetAllAsync(cancellationToken);
+        var categories = await uow.Categories.GetAllAsync(cancellationToken);
 
         var dtos = categories.Select(c => new CategoryDto
         {
@@ -36,23 +30,16 @@ public class GetAllCategoriesQueryHandler
 
 public record GetCategoryByIdQuery(Guid Id) : IRequest<ApiResponse<CategoryDto>>;
 
-public class GetCategoryByIdQueryHandler
-    : IRequestHandler<GetCategoryByIdQuery, ApiResponse<CategoryDto>>
+public class GetCategoryByIdQueryHandler(IUnitOfWork uow)
+        : IRequestHandler<GetCategoryByIdQuery, ApiResponse<CategoryDto>>
 {
-    private readonly IUnitOfWork _uow;
-
-    public GetCategoryByIdQueryHandler(IUnitOfWork uow)
-    {
-        _uow = uow;
-    }
-
     public async Task<ApiResponse<CategoryDto>> Handle(
         GetCategoryByIdQuery request, CancellationToken cancellationToken)
     {
-        var category = await _uow.Categories.GetByIdAsync(request.Id, cancellationToken);
+        var category = await uow.Categories.GetByIdAsync(request.Id, cancellationToken);
 
         if (category is null)
-            return ApiResponse<CategoryDto>.ErrorResponse("Category not found.");
+            throw new NotFoundException("Category not found.", "ID");
 
         var dto = new CategoryDto
         {
@@ -65,3 +52,4 @@ public class GetCategoryByIdQueryHandler
         return ApiResponse<CategoryDto>.SuccessResponse(dto);
     }
 }
+

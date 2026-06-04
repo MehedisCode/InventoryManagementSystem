@@ -1,13 +1,13 @@
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using MediatR;
 
 namespace IMS.Application.Features.Sales;
 
-public class DeleteSaleCommand : IRequest<ApiResponse<bool>>
+public class DeleteSaleCommand(Guid id) : IRequest<ApiResponse<bool>>
 {
-    public Guid Id { get; set; }
-    public DeleteSaleCommand(Guid id) => Id = id;
+    public Guid Id { get; set; } = id;
 }
 
 public class DeleteSaleCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<DeleteSaleCommand, ApiResponse<bool>>
@@ -16,7 +16,7 @@ public class DeleteSaleCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<
     {
         var sale = await unitOfWork.Sales.GetByIdWithDetailsAsync(request.Id, cancellationToken);
         if (sale == null)
-            return ApiResponse<bool>.ErrorResponse("Sale not found.");
+            throw new NotFoundException("Sale not found.", "ID");
 
         // Reverse stock deductions before deleting
         foreach (var item in sale.SaleItems)
@@ -35,3 +35,4 @@ public class DeleteSaleCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<
         return ApiResponse<bool>.SuccessResponse(true, "Sale deleted successfully.");
     }
 }
+

@@ -43,3 +43,4 @@ public class CreateCustomerCommandHandler(IUnitOfWork unitOfWork) : IRequestHand
         return ApiResponse<Guid>.SuccessResponse(customer.Id, "Customer created successfully.");
     }
 }
+

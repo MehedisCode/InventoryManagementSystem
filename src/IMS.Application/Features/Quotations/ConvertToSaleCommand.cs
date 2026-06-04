@@ -1,8 +1,9 @@
+using MediatR;
+using IMS.Domain.Enums;
+using IMS.Domain.Entities;
+using IMS.Domain.Exceptions;
 using IMS.Application.Common;
 using IMS.Application.Interfaces;
-using IMS.Domain.Entities;
-using IMS.Domain.Enums;
-using MediatR;
 
 namespace IMS.Application.Features.Quotations;
 
@@ -17,10 +18,10 @@ public class ConvertToSaleCommandHandler(IUnitOfWork unitOfWork) : IRequestHandl
     {
         var quotation = await unitOfWork.Quotations.GetByIdWithDetailsAsync(request.QuotationId, cancellationToken);
         if (quotation == null)
-            return ApiResponse<Guid>.ErrorResponse("Quotation not found.");
+            throw new NotFoundException("Quotation not found.", "ID");
 
         if (quotation.Status == QuotationStatus.Accepted)
-            return ApiResponse<Guid>.ErrorResponse("Quotation is already accepted and converted.");
+            throw new BusinessRuleException("Quotation is already accepted and converted.");
 
         // Load products for stock decrease
         var productIds = quotation.QuotationItems.Select(i => i.ProductId).Distinct().ToList();
@@ -31,7 +32,7 @@ public class ConvertToSaleCommandHandler(IUnitOfWork unitOfWork) : IRequestHandl
         foreach (var item in quotation.QuotationItems)
         {
             if (!products.TryGetValue(item.ProductId, out var product))
-                return ApiResponse<Guid>.ErrorResponse($"Product with ID {item.ProductId} not found.");
+                throw new BusinessRuleException($"Product with ID {item.ProductId} not found.");
 
             if (product.StockQuantity < item.Quantity)
                 return ApiResponse<Guid>.ErrorResponse(
@@ -87,3 +88,4 @@ public class ConvertToSaleCommandHandler(IUnitOfWork unitOfWork) : IRequestHandl
         return ApiResponse<Guid>.SuccessResponse(sale.Id, "Quotation successfully converted to Sale.");
     }
 }
+

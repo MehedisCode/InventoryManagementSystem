@@ -22,7 +22,7 @@ public class UsersController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<UserDetailDto>>> GetById(string id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetUserByIdQuery(id), cancellationToken);
-        if (!result.Success) return NotFound(result);
+
         return Ok(result);
     }
 
@@ -30,7 +30,7 @@ public class UsersController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<string>>> Create([FromBody] CreateUserCommand command, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(command, cancellationToken);
-        if (!result.Success) return BadRequest(result);
+
         return CreatedAtAction(nameof(GetById), new { id = result.Data }, result);
     }
 
@@ -39,7 +39,7 @@ public class UsersController(IMediator mediator) : ControllerBase
     {
         command.Id = id;
         var result = await mediator.Send(command, cancellationToken);
-        if (!result.Success) return BadRequest(result);
+
         return Ok(result);
     }
 
@@ -47,7 +47,7 @@ public class UsersController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<bool>>> Delete(string id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new DeleteUserCommand(id), cancellationToken);
-        if (!result.Success) return BadRequest(result);
+
         return Ok(result);
     }
 
@@ -55,7 +55,7 @@ public class UsersController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<bool>>> ToggleStatus(string id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new ToggleUserStatusCommand(id), cancellationToken);
-        if (!result.Success) return BadRequest(result);
+
         return Ok(result);
     }
 
@@ -64,7 +64,8 @@ public class UsersController(IMediator mediator) : ControllerBase
     {
         command.Id = id;
         var result = await mediator.Send(command, cancellationToken);
-        if (!result.Success) return BadRequest(result);
+
         return Ok(result);
     }
 }
+

@@ -112,3 +112,4 @@ public class GetDashboardSummaryQueryHandler(IUnitOfWork unitOfWork)
         return ApiResponse<DashboardSummaryDto>.SuccessResponse(result);
     }
 }
+

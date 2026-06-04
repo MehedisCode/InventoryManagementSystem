@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using MediatR;
 
@@ -15,7 +16,7 @@ public class GetCurrencyByIdQueryHandler(IUnitOfWork unitOfWork) : IRequestHandl
     {
         var currency = await unitOfWork.Currencies.GetByIdAsync(request.Id, cancellationToken);
         if (currency == null)
-            return ApiResponse<CurrencyDto>.ErrorResponse("Currency not found.");
+            throw new NotFoundException("Currency not found.", "ID");
 
         var result = new CurrencyDto
         {
@@ -28,3 +29,4 @@ public class GetCurrencyByIdQueryHandler(IUnitOfWork unitOfWork) : IRequestHandl
         return ApiResponse<CurrencyDto>.SuccessResponse(result);
     }
 }
+

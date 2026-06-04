@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -16,7 +17,7 @@ public class GetUserByIdQueryHandler(UserManager<ApplicationUser> userManager) :
     {
         var user = await userManager.FindByIdAsync(request.Id);
         if (user == null)
-            return ApiResponse<UserDetailDto>.ErrorResponse("User not found.");
+            throw new NotFoundException("User not found.", "ID");
 
         var roles = await userManager.GetRolesAsync(user);
 
@@ -33,3 +34,4 @@ public class GetUserByIdQueryHandler(UserManager<ApplicationUser> userManager) :
         return ApiResponse<UserDetailDto>.SuccessResponse(result);
     }
 }
+

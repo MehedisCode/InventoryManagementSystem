@@ -1,5 +1,6 @@
 using FluentValidation;
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using IMS.Domain.Entities;
 using IMS.Domain.Enums;
@@ -44,14 +45,14 @@ public class UpdateQuotationCommandHandler(IUnitOfWork unitOfWork) : IRequestHan
     {
         var quotation = await unitOfWork.Quotations.GetByIdWithDetailsAsync(request.Id, cancellationToken);
         if (quotation == null)
-            return ApiResponse<bool>.ErrorResponse("Quotation not found.");
+            throw new NotFoundException("Quotation not found.", "ID");
 
         if (quotation.Status == QuotationStatus.Accepted)
-            return ApiResponse<bool>.ErrorResponse("Accepted quotations cannot be updated.");
+            throw new BusinessRuleException("Accepted quotations cannot be updated.");
 
         var customer = await unitOfWork.Customers.GetByIdAsync(request.CustomerId, cancellationToken);
         if (customer == null)
-            return ApiResponse<bool>.ErrorResponse("Customer not found.");
+            throw new NotFoundException("Customer not found.", "ID");
 
         quotation.QuotationItems.Clear();
         var totalAmount = 0m;
@@ -85,3 +86,4 @@ public class UpdateQuotationCommandHandler(IUnitOfWork unitOfWork) : IRequestHan
         return ApiResponse<bool>.SuccessResponse(true, "Quotation updated successfully.");
     }
 }
+

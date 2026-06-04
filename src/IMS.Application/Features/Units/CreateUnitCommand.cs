@@ -1,7 +1,7 @@
 using FluentValidation;
+using MediatR;
 using IMS.Application.Common;
 using IMS.Application.Interfaces;
-using MediatR;
 using Unit = IMS.Domain.Entities.Unit;
 
 namespace IMS.Application.Features.Units;
@@ -37,3 +37,4 @@ public class CreateUnitCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<
         return ApiResponse<Guid>.SuccessResponse(unit.Id, "Unit created successfully.");
     }
 }
+

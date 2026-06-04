@@ -23,3 +23,4 @@ public class GetAllCurrenciesQueryHandler(IUnitOfWork unitOfWork) : IRequestHand
         return ApiResponse<List<CurrencyDto>>.SuccessResponse(result);
     }
 }
+

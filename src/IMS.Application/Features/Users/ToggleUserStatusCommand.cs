@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -10,13 +11,14 @@ public class ToggleUserStatusCommand(string id) : IRequest<ApiResponse<bool>>
     public string Id { get; set; } = id;
 }
 
-public class ToggleUserStatusCommandHandler(UserManager<ApplicationUser> userManager) : IRequestHandler<ToggleUserStatusCommand, ApiResponse<bool>>
+public class ToggleUserStatusCommandHandler(UserManager<ApplicationUser> userManager)
+    : IRequestHandler<ToggleUserStatusCommand, ApiResponse<bool>>
 {
     public async Task<ApiResponse<bool>> Handle(ToggleUserStatusCommand request, CancellationToken cancellationToken)
     {
         var user = await userManager.FindByIdAsync(request.Id);
         if (user == null)
-            return ApiResponse<bool>.ErrorResponse("User not found.");
+            throw new NotFoundException("User not found.", "ID");
 
         user.IsActive = !user.IsActive;
         var result = await userManager.UpdateAsync(user);
@@ -24,10 +26,11 @@ public class ToggleUserStatusCommandHandler(UserManager<ApplicationUser> userMan
         if (!result.Succeeded)
         {
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            return ApiResponse<bool>.ErrorResponse($"Failed to toggle user status: {errors}");
+            throw new BusinessRuleException($"Failed to toggle user status: {errors}");
         }
 
         return ApiResponse<bool>.SuccessResponse(
             true, $"User {(user.IsActive ? "activated" : "deactivated")} successfully.");
     }
 }
+

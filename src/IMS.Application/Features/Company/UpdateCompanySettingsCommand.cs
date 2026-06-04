@@ -1,5 +1,6 @@
 using FluentValidation;
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using MediatR;
 
@@ -48,8 +49,7 @@ public class UpdateCompanySettingsCommandHandler(
 
         if (currency == null)
         {
-            return ApiResponse<bool>.ErrorResponse(
-                "Selected currency does not exist.");
+            throw new BusinessRuleException("Selected currency does not exist.");
         }
 
         var companyList = await unitOfWork.Company.GetAllAsync(cancellationToken);

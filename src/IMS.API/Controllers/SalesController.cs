@@ -22,7 +22,7 @@ public class SalesController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<SaleDetailDto>>> GetById(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetSaleByIdQuery(id), cancellationToken);
-        if (!result.Success) return NotFound(result);
+
         return Ok(result);
     }
 
@@ -30,7 +30,7 @@ public class SalesController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<Guid>>> Create([FromBody] CreateSaleCommand command, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(command, cancellationToken);
-        if (!result.Success) return BadRequest(result);
+
         return CreatedAtAction(nameof(GetById), new { id = result.Data }, result);
     }
 
@@ -39,7 +39,7 @@ public class SalesController(IMediator mediator) : ControllerBase
     {
         command.Id = id;
         var result = await mediator.Send(command, cancellationToken);
-        if (!result.Success) return BadRequest(result);
+
         return Ok(result);
     }
 
@@ -47,7 +47,8 @@ public class SalesController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new DeleteSaleCommand(id), cancellationToken);
-        if (!result.Success) return NotFound(result);
+
         return Ok(result);
     }
 }
+

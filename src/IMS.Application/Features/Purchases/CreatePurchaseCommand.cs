@@ -1,9 +1,10 @@
+using MediatR;
+using IMS.Domain.Enums;
 using FluentValidation;
+using IMS.Domain.Entities;
+using IMS.Domain.Exceptions;
 using IMS.Application.Common;
 using IMS.Application.Interfaces;
-using IMS.Domain.Entities;
-using IMS.Domain.Enums;
-using MediatR;
 
 namespace IMS.Application.Features.Purchases;
 
@@ -47,7 +48,7 @@ public class CreatePurchaseCommandHandler(IUnitOfWork unitOfWork) : IRequestHand
         foreach (var itemDto in request.Items)
         {
             if (!products.TryGetValue(itemDto.ProductId, out var product))
-                return ApiResponse<Guid>.ErrorResponse($"Product with ID {itemDto.ProductId} not found.");
+                throw new BusinessRuleException($"Product with ID {itemDto.ProductId} not found.");
 
             var subTotal = itemDto.Quantity * itemDto.UnitCost;
             totalAmount += subTotal;
@@ -93,3 +94,4 @@ public class CreatePurchaseCommandHandler(IUnitOfWork unitOfWork) : IRequestHand
         return ApiResponse<Guid>.SuccessResponse(purchase.Id, "Purchase created successfully.");
     }
 }
+

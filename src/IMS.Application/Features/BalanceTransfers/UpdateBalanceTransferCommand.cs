@@ -1,5 +1,6 @@
 using FluentValidation;
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using IMS.Domain.Enums;
 using MediatR;
@@ -37,7 +38,7 @@ public class UpdateBalanceTransferCommandHandler(IUnitOfWork unitOfWork) : IRequ
     {
         var transfer = await unitOfWork.BalanceTransfers.GetByIdAsync(request.Id, cancellationToken);
         if (transfer == null)
-            return ApiResponse<bool>.ErrorResponse("Balance transfer not found.");
+            throw new NotFoundException("Balance transfer not found.", "ID");
 
         transfer.FromAccount = request.FromAccount;
         transfer.ToAccount = request.ToAccount;
@@ -52,3 +53,4 @@ public class UpdateBalanceTransferCommandHandler(IUnitOfWork unitOfWork) : IRequ
         return ApiResponse<bool>.SuccessResponse(true, "Balance transfer updated successfully.");
     }
 }
+

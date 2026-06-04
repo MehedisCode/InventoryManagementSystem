@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Domain.Exceptions;
 using IMS.Application.Interfaces;
 using IMS.Domain.Entities;
 using MediatR;
@@ -17,21 +18,17 @@ public record CreateProductCommand(
     decimal AlertQuantity,
     string? ImageUrl) : IRequest<ApiResponse<Guid>>;
 
-public class CreateProductCommandHandler
-    : IRequestHandler<CreateProductCommand, ApiResponse<Guid>>
+public class CreateProductCommandHandler(IUnitOfWork uow)
+        : IRequestHandler<CreateProductCommand, ApiResponse<Guid>>
 {
-    private readonly IUnitOfWork _uow;
-
-    public CreateProductCommandHandler(IUnitOfWork uow) => _uow = uow;
-
     public async Task<ApiResponse<Guid>> Handle(
         CreateProductCommand request, CancellationToken cancellationToken)
     {
-        var skuUnique = await _uow.Products
+        var skuUnique = await uow.Products
             .IsSkuUniqueAsync(request.SKU, cancellationToken: cancellationToken);
 
         if (!skuUnique)
-            return ApiResponse<Guid>.ErrorResponse("A product with this SKU already exists.");
+            throw new BusinessRuleException("A product with this SKU already exists.");
 
         var product = new Product
         {
@@ -49,8 +46,8 @@ public class CreateProductCommandHandler
             CreatedAt = DateTime.UtcNow
         };
 
-        await _uow.Products.AddAsync(product, cancellationToken);
-        await _uow.SaveChangesAsync(cancellationToken);
+        await uow.Products.AddAsync(product, cancellationToken);
+        await uow.SaveChangesAsync(cancellationToken);
 
         return ApiResponse<Guid>.SuccessResponse(product.Id, "Product created successfully.");
     }
@@ -69,25 +66,21 @@ public record UpdateProductCommand(
     string? ImageUrl,
     Guid Id) : IRequest<ApiResponse<bool>>;
 
-public class UpdateProductCommandHandler
-    : IRequestHandler<UpdateProductCommand, ApiResponse<bool>>
+public class UpdateProductCommandHandler(IUnitOfWork uow)
+        : IRequestHandler<UpdateProductCommand, ApiResponse<bool>>
 {
-    private readonly IUnitOfWork _uow;
-
-    public UpdateProductCommandHandler(IUnitOfWork uow) => _uow = uow;
-
     public async Task<ApiResponse<bool>> Handle(
         UpdateProductCommand request, CancellationToken cancellationToken)
     {
-        var product = await _uow.Products.GetByIdAsync(request.Id, cancellationToken);
+        var product = await uow.Products.GetByIdAsync(request.Id, cancellationToken);
         if (product is null)
-            return ApiResponse<bool>.ErrorResponse("Product not found.");
+            throw new NotFoundException("Product not found.", "ID");
 
-        var skuUnique = await _uow.Products
+        var skuUnique = await uow.Products
             .IsSkuUniqueAsync(request.SKU, request.Id, cancellationToken);
 
         if (!skuUnique)
-            return ApiResponse<bool>.ErrorResponse("A product with this SKU already exists.");
+            throw new BusinessRuleException("A product with this SKU already exists.");
 
         product.Name = request.Name;
         product.SKU = request.SKU;
@@ -101,8 +94,8 @@ public class UpdateProductCommandHandler
         product.ImageUrl = request.ImageUrl ?? "";
         product.UpdatedAt = DateTime.UtcNow;
 
-        await _uow.Products.UpdateAsync(product, cancellationToken);
-        await _uow.SaveChangesAsync(cancellationToken);
+        await uow.Products.UpdateAsync(product, cancellationToken);
+        await uow.SaveChangesAsync(cancellationToken);
 
         return ApiResponse<bool>.SuccessResponse(true, "Product updated successfully.");
     }
@@ -110,23 +103,20 @@ public class UpdateProductCommandHandler
 
 public record DeleteProductCommand(Guid Id) : IRequest<ApiResponse<bool>>;
 
-public class DeleteProductCommandHandler
-    : IRequestHandler<DeleteProductCommand, ApiResponse<bool>>
+public class DeleteProductCommandHandler(IUnitOfWork uow)
+        : IRequestHandler<DeleteProductCommand, ApiResponse<bool>>
 {
-    private readonly IUnitOfWork _uow;
-
-    public DeleteProductCommandHandler(IUnitOfWork uow) => _uow = uow;
-
     public async Task<ApiResponse<bool>> Handle(
         DeleteProductCommand request, CancellationToken cancellationToken)
     {
-        var product = await _uow.Products.GetByIdAsync(request.Id, cancellationToken);
+        var product = await uow.Products.GetByIdAsync(request.Id, cancellationToken);
         if (product is null)
-            return ApiResponse<bool>.ErrorResponse("Product not found.");
+            throw new NotFoundException("Product not found.", "ID");
 
-        await _uow.Products.DeleteAsync(product, cancellationToken);
-        await _uow.SaveChangesAsync(cancellationToken);
+        await uow.Products.DeleteAsync(product, cancellationToken);
+        await uow.SaveChangesAsync(cancellationToken);
 
         return ApiResponse<bool>.SuccessResponse(true, "Product deleted successfully.");
     }
 }
+

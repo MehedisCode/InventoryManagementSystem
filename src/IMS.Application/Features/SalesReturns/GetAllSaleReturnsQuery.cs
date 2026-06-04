@@ -28,3 +28,4 @@ public class GetAllSaleReturnsQueryHandler(IUnitOfWork unitOfWork)
         return ApiResponse<List<SaleReturnListDto>>.SuccessResponse(result);
     }
 }
+

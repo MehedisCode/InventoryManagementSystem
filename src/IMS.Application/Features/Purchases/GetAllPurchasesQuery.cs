@@ -1,6 +1,6 @@
+using MediatR;
 using IMS.Application.Common;
 using IMS.Application.Interfaces;
-using MediatR;
 
 namespace IMS.Application.Features.Purchases;
 
@@ -27,3 +27,4 @@ public class GetAllPurchasesQueryHandler(IUnitOfWork unitOfWork) : IRequestHandl
         return ApiResponse<List<PurchaseListDto>>.SuccessResponse(result);
     }
 }
+
