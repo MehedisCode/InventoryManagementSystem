@@ -10,6 +10,16 @@ Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .CreateLogger();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ReactPolicy", (policy) =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 builder.Host.UseSerilog();
 
 builder.Services.AddControllers();
@@ -70,5 +80,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.MapControllers();
+
+app.UseCors("ReactPolicy");
 
 app.Run();
