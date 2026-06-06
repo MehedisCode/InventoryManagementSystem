@@ -24,7 +24,6 @@ builder.Host.UseSerilog();
 
 builder.Services.AddControllers();
 
-// Add Clean Architecture Extensions
 builder.Services.AddInfrastructureServicesApi(builder.Configuration);
 builder.Services.AddApplicationServices();
 
@@ -41,6 +40,8 @@ if (app.Environment.IsDevelopment())
 app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
+
+app.UseCors("ReactPolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -80,7 +81,5 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.MapControllers();
-
-app.UseCors("ReactPolicy");
 
 app.Run();

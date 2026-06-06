@@ -1,7 +1,14 @@
 import axiosInstance from "./axiosInstance";
-export const getCategories = () => axiosInstance.get("/categories");
-export const getCategory = (id) => axiosInstance.get(`/categories/${id}`);
-export const createCategory = (data) => axiosInstance.post("/categories", data);
+
+export const getCategories = () => axiosInstance.get("/api/Categories");
+
+export const getCategory = (id) => axiosInstance.get(`/api/Categories/${id}`);
+
+export const createCategory = (data) =>
+  axiosInstance.post("/api/Categories", data);
+
 export const updateCategory = (id, data) =>
-  axiosInstance.put(`/categories/${id}`, data);
-export const deleteCategory = (id) => axiosInstance.delete(`/categories/${id}`);
+  axiosInstance.put(`/api/Categories/${id}`, data);
+
+export const deleteCategory = (id) =>
+  axiosInstance.delete(`/api/Categories/${id}`);

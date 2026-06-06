@@ -1,22 +1,28 @@
-import { useState } from 'react';
-import { Search, Inbox } from 'lucide-react';
-import Button from '../ui/Button';
-import Spinner from '../ui/Spinner';
+import { useState } from "react";
+import { Search, Inbox } from "lucide-react";
+import Button from "../ui/Button";
+import Spinner from "../ui/Spinner";
 
-export default function DataTable({ columns, data = [], isLoading = false, onSearch, pagination = true }) {
-  const [searchTerm, setSearchTerm] = useState('');
+export default function DataTable({
+  columns,
+  data = [],
+  isLoading = false,
+  onSearch,
+  pagination = true,
+}) {
+  const [searchTerm, setSearchTerm] = useState("");
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const filteredData = data.filter(row => {
+  const filteredData = data.filter((row) => {
     if (!searchTerm) return true;
-    return Object.values(row).some(val => 
-      String(val).toLowerCase().includes(searchTerm.toLowerCase())
+    return Object.values(row).some((val) =>
+      String(val).toLowerCase().includes(searchTerm.toLowerCase()),
     );
   });
 
   const totalPages = Math.ceil(filteredData.length / pageSize);
-  const paginatedData = pagination 
+  const paginatedData = pagination
     ? filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize)
     : filteredData;
 
@@ -24,7 +30,7 @@ export default function DataTable({ columns, data = [], isLoading = false, onSea
     const val = e.target.value;
     setSearchTerm(val);
     setCurrentPage(1);
-    if(onSearch) onSearch(val);
+    if (onSearch) onSearch(val);
   };
 
   return (
@@ -41,11 +47,16 @@ export default function DataTable({ columns, data = [], isLoading = false, onSea
         </div>
         {pagination && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-500 dark:text-slate-400">Rows per page:</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400">
+              Rows per page:
+            </span>
             <select
               className="h-9 rounded-md border border-slate-300 bg-transparent px-2 text-sm focus:border-primary-900 focus:outline-none focus:ring-1 focus:ring-primary-900 dark:border-slate-700 dark:bg-dark-card dark:text-slate-100 dark:focus:ring-primary-400"
               value={pageSize}
-              onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
             >
               <option value={10}>10</option>
               <option value={25}>25</option>
@@ -60,7 +71,9 @@ export default function DataTable({ columns, data = [], isLoading = false, onSea
           <thead className="bg-slate-50 text-xs uppercase text-slate-700 dark:bg-slate-800/50 dark:text-slate-400">
             <tr>
               {columns.map((col, index) => (
-                <th key={index} className="px-6 py-3 font-medium">{col.header}</th>
+                <th key={index} className="px-6 py-3 font-medium">
+                  {col.header}
+                </th>
               ))}
             </tr>
           </thead>
@@ -76,10 +89,17 @@ export default function DataTable({ columns, data = [], isLoading = false, onSea
               </tr>
             ) : paginatedData.length > 0 ? (
               paginatedData.map((row, rowIndex) => (
-                <tr key={rowIndex} className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <tr
+                  key={rowIndex}
+                  className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                >
                   {columns.map((col, colIndex) => (
                     <td key={colIndex} className="px-6 py-4">
-                      {col.accessor ? row[col.accessor] : col.render ? col.render(row) : null}
+                      {col.accessor
+                        ? row[col.accessor]
+                        : col.render
+                          ? col.render(row)
+                          : null}
                     </td>
                   ))}
                 </tr>
@@ -90,7 +110,9 @@ export default function DataTable({ columns, data = [], isLoading = false, onSea
                   <div className="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400">
                     <Inbox className="mb-4 h-12 w-12 opacity-20" />
                     <p className="text-lg font-medium">No records found</p>
-                    <p className="text-sm opacity-70">Try adjusting your search criteria</p>
+                    <p className="text-sm opacity-70">
+                      Try adjusting your search criteria
+                    </p>
                   </div>
                 </td>
               </tr>
@@ -102,14 +124,16 @@ export default function DataTable({ columns, data = [], isLoading = false, onSea
       {pagination && !isLoading && filteredData.length > 0 && (
         <div className="flex items-center justify-between border-t border-light-border p-4 dark:border-dark-border">
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filteredData.length)} of {filteredData.length} results
+            Showing {(currentPage - 1) * pageSize + 1} to{" "}
+            {Math.min(currentPage * pageSize, filteredData.length)} of{" "}
+            {filteredData.length} results
           </p>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               disabled={currentPage === 1}
-              onClick={() => setCurrentPage(prev => prev - 1)}
+              onClick={() => setCurrentPage((prev) => prev - 1)}
             >
               Previous
             </Button>
@@ -117,7 +141,7 @@ export default function DataTable({ columns, data = [], isLoading = false, onSea
               variant="outline"
               size="sm"
               disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(prev => prev + 1)}
+              onClick={() => setCurrentPage((prev) => prev + 1)}
             >
               Next
             </Button>

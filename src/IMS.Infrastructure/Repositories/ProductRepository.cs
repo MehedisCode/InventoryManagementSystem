@@ -5,10 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IMS.Infrastructure.Repositories;
 
-public class ProductRepository : GenericRepository<Product>, IProductRepository
+public class ProductRepository(ApplicationDbContext context) : GenericRepository<Product>(context), IProductRepository
 {
-    public ProductRepository(ApplicationDbContext context) : base(context) { }
-
     public async Task<Product?> GetByIdWithDetailsAsync(Guid id,
         CancellationToken cancellationToken = default)
         => await _dbSet
