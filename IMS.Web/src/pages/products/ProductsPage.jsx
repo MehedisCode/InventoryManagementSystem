@@ -121,10 +121,6 @@ export default function ProductsPage() {
     },
   ];
 
-  useEffect(() => {
-    console.log(products);
-  }, [products]);
-
   return (
     <div className="space-y-6">
       <PageHeader
