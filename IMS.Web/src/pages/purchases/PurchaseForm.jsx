@@ -141,6 +141,7 @@ export default function PurchaseForm({ purchase, onSuccess, onCancel }) {
     console.log("data", data);
     saveMutation.mutate({
       ...data,
+      purchaseDate: new Date(data.purchaseDate).toISOString(),
       totalAmount,
       subTotal,
       dueAmount,

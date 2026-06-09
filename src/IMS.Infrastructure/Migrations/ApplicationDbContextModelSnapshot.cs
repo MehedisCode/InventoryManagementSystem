@@ -17,7 +17,7 @@ namespace IMS.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -139,7 +139,7 @@ namespace IMS.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BalanceTransfers");
+                    b.ToTable("BalanceTransfers", (string)null);
                 });
 
             modelBuilder.Entity("IMS.Domain.Entities.Category", b =>
@@ -167,7 +167,7 @@ namespace IMS.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("IMS.Domain.Entities.Company", b =>
@@ -212,7 +212,7 @@ namespace IMS.Infrastructure.Migrations
 
                     b.HasIndex("CurrencyId");
 
-                    b.ToTable("Companies");
+                    b.ToTable("Companies", (string)null);
                 });
 
             modelBuilder.Entity("IMS.Domain.Entities.Currency", b =>
@@ -244,7 +244,7 @@ namespace IMS.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Currencies");
+                    b.ToTable("Currencies", (string)null);
                 });
 
             modelBuilder.Entity("IMS.Domain.Entities.Customer", b =>
@@ -280,7 +280,7 @@ namespace IMS.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Customers");
+                    b.ToTable("Customers", (string)null);
                 });
 
             modelBuilder.Entity("IMS.Domain.Entities.Product", b =>
@@ -342,7 +342,7 @@ namespace IMS.Infrastructure.Migrations
 
                     b.HasIndex("UnitId");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("IMS.Domain.Entities.Purchase", b =>
@@ -397,7 +397,7 @@ namespace IMS.Infrastructure.Migrations
 
                     b.HasIndex("SupplierId");
 
-                    b.ToTable("Purchases");
+                    b.ToTable("Purchases", (string)null);
                 });
 
             modelBuilder.Entity("IMS.Domain.Entities.PurchaseItem", b =>
@@ -439,7 +439,7 @@ namespace IMS.Infrastructure.Migrations
 
                     b.HasIndex("PurchaseId");
 
-                    b.ToTable("PurchaseItems");
+                    b.ToTable("PurchaseItems", (string)null);
                 });
 
             modelBuilder.Entity("IMS.Domain.Entities.Quotation", b =>
@@ -489,7 +489,7 @@ namespace IMS.Infrastructure.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("Quotations");
+                    b.ToTable("Quotations", (string)null);
                 });
 
             modelBuilder.Entity("IMS.Domain.Entities.QuotationItem", b =>
@@ -531,7 +531,7 @@ namespace IMS.Infrastructure.Migrations
 
                     b.HasIndex("QuotationId");
 
-                    b.ToTable("QuotationItems");
+                    b.ToTable("QuotationItems", (string)null);
                 });
 
             modelBuilder.Entity("IMS.Domain.Entities.Sale", b =>
@@ -586,7 +586,7 @@ namespace IMS.Infrastructure.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("Sales");
+                    b.ToTable("Sales", (string)null);
                 });
 
             modelBuilder.Entity("IMS.Domain.Entities.SaleItem", b =>
@@ -628,7 +628,7 @@ namespace IMS.Infrastructure.Migrations
 
                     b.HasIndex("SaleId");
 
-                    b.ToTable("SaleItems");
+                    b.ToTable("SaleItems", (string)null);
                 });
 
             modelBuilder.Entity("IMS.Domain.Entities.SaleReturn", b =>
@@ -671,7 +671,7 @@ namespace IMS.Infrastructure.Migrations
 
                     b.HasIndex("SaleId");
 
-                    b.ToTable("SaleReturns");
+                    b.ToTable("SaleReturns", (string)null);
                 });
 
             modelBuilder.Entity("IMS.Domain.Entities.SaleReturnItem", b =>
@@ -713,7 +713,7 @@ namespace IMS.Infrastructure.Migrations
 
                     b.HasIndex("SaleReturnId");
 
-                    b.ToTable("SaleReturnItems");
+                    b.ToTable("SaleReturnItems", (string)null);
                 });
 
             modelBuilder.Entity("IMS.Domain.Entities.Supplier", b =>
@@ -749,7 +749,7 @@ namespace IMS.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Suppliers");
+                    b.ToTable("Suppliers", (string)null);
                 });
 
             modelBuilder.Entity("IMS.Domain.Entities.Unit", b =>
@@ -777,7 +777,7 @@ namespace IMS.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Units");
+                    b.ToTable("Units", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

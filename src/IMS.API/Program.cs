@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Identity;
 using Serilog;
 using IMS.Domain.Entities;
@@ -22,7 +23,10 @@ builder.Services.AddCors(options =>
 
 builder.Host.UseSerilog();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter())
+    );
 
 builder.Services.AddInfrastructureServicesApi(builder.Configuration);
 builder.Services.AddApplicationServices();
