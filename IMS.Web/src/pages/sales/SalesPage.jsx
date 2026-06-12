@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Eye, Pencil, Trash2, Plus } from "lucide-react";
 import toast from "react-hot-toast";
-import { getSales, deleteSale } from "../../api/saleApi";
+import { getSales, deleteSale, getSale } from "../../api/saleApi";
 import PageHeader from "../../components/ui/PageHeader";
 import Button from "../../components/ui/Button";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
@@ -11,15 +11,18 @@ import Modal from "../../components/ui/Modal";
 import Select from "../../components/ui/Select";
 import Badge from "../../components/ui/Badge";
 import SaleForm from "./SaleForm";
+import SaleView from "./SaleView";
 import { formatDate } from "../../utils/formatters";
 
 export default function SalesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
-  const [selectedSale, setSelectedSale] = useState(null);
+  // const [selectedSale, setSelectedSale] = useState(null);
+  const [selectedSaleId, setSelectedSaleId] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [saleToDelete, setSaleToDelete] = useState(null);
   const [statusFilter, setStatusFilter] = useState("All");
+  const [isLoadingSale, setIsLoadingSale] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -59,9 +62,22 @@ export default function SalesPage() {
     }
   };
 
+  const loadSaleDetails = async (saleId) => {
+    try {
+      const res = await getSale(saleId);
+      return res?.data?.data;
+    } catch (error) {
+      toast.error("Failed to load sale details");
+      return null;
+    }
+  };
+
   const columns = [
     { header: "Ref No", accessor: "referenceNo" },
-    { header: "Customer", render: (row) => row.customer?.name || "Unknown" },
+    {
+      header: "Customer",
+      render: (row) => row?.customerName || "Unknown",
+    },
     { header: "Date", render: (row) => formatDate(row.saleDate) },
     {
       header: "Total Amount",
@@ -85,7 +101,7 @@ export default function SalesPage() {
         <div className="flex gap-2">
           <button
             onClick={() => {
-              setSelectedSale(row);
+              setSelectedSaleId(row.id);
               setIsViewOpen(true);
             }}
             className="p-1 text-slate-400 hover:text-green-500 transition-colors"
@@ -94,9 +110,12 @@ export default function SalesPage() {
             <Eye className="w-4 h-4" />
           </button>
           <button
-            onClick={() => {
-              setSelectedSale(row);
-              setIsFormOpen(true);
+            onClick={async () => {
+              const sale = await loadSaleDetails(row.id);
+              if (sale) {
+                setSelectedSaleId(sale.id);
+                setIsFormOpen(true);
+              }
             }}
             className="p-1 text-slate-400 hover:text-blue-500 transition-colors"
             title="Edit"
@@ -104,7 +123,13 @@ export default function SalesPage() {
             <Pencil className="w-4 h-4" />
           </button>
           <button
-            onClick={() => handleDelete(row)}
+            onClick={async () => {
+              const sale = await loadSaleDetails(row.id);
+              if (sale) {
+                setSelectedSaleId(sale.id);
+                setIsViewOpen(true);
+              }
+            }}
             className="p-1 text-slate-400 hover:text-red-500 transition-colors"
             title="Delete"
           >
@@ -124,7 +149,7 @@ export default function SalesPage() {
           <Button
             iconLeft={Plus}
             onClick={() => {
-              setSelectedSale(null);
+              setSelectedSaleId(null);
               setIsFormOpen(true);
             }}
           >
@@ -156,13 +181,19 @@ export default function SalesPage() {
       <Modal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title={selectedSale ? "Edit Sale" : "New Sale"}
-        size="4xl"
+        title={selectedSaleId ? "Edit Sale" : "New Sale"}
+        size="2xl"
       >
         <SaleForm
-          sale={selectedSale}
-          onSuccess={() => setIsFormOpen(false)}
-          onCancel={() => setIsFormOpen(false)}
+          saleId={selectedSaleId}
+          onSuccess={() => {
+            setIsFormOpen(false);
+            setSelectedSaleId(null);
+          }}
+          onCancel={() => {
+            setIsFormOpen(false);
+            setSelectedSaleId(null);
+          }}
         />
       </Modal>
 
@@ -173,126 +204,7 @@ export default function SalesPage() {
         title="Sale Details"
         size="2xl"
       >
-        {selectedSale && (
-          <div className="space-y-6 text-sm text-slate-700 dark:text-slate-300">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg">
-              <div>
-                <p className="text-slate-500 dark:text-slate-400 text-xs uppercase mb-1">
-                  Reference No
-                </p>
-                <p className="font-medium text-slate-900 dark:text-white">
-                  {selectedSale.referenceNo || "N/A"}
-                </p>
-              </div>
-              <div>
-                <p className="text-slate-500 dark:text-slate-400 text-xs uppercase mb-1">
-                  Customer
-                </p>
-                <p className="font-medium text-slate-900 dark:text-white">
-                  {selectedSale.customer?.name || "Unknown"}
-                </p>
-              </div>
-              <div>
-                <p className="text-slate-500 dark:text-slate-400 text-xs uppercase mb-1">
-                  Date
-                </p>
-                <p className="font-medium text-slate-900 dark:text-white">
-                  {formatDate(selectedSale.saleDate)}
-                </p>
-              </div>
-              <div>
-                <p className="text-slate-500 dark:text-slate-400 text-xs uppercase mb-1">
-                  Status
-                </p>
-                <Badge status={selectedSale.status}>
-                  {selectedSale.status}
-                </Badge>
-              </div>
-            </div>
-
-            {selectedSale.note && (
-              <div>
-                <h4 className="font-medium text-slate-900 dark:text-white mb-2">
-                  Note
-                </h4>
-                <p className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border dark:border-slate-700">
-                  {selectedSale.note}
-                </p>
-              </div>
-            )}
-
-            <div>
-              <h4 className="font-medium text-slate-900 dark:text-white mb-3 text-lg">
-                Items
-              </h4>
-              <div className="overflow-x-auto border rounded-lg dark:border-slate-700">
-                <table className="w-full text-left">
-                  <thead className="bg-slate-50 dark:bg-slate-800/50 border-b dark:border-slate-700">
-                    <tr>
-                      <th className="px-4 py-2 font-medium">Product</th>
-                      <th className="px-4 py-2 font-medium text-right">
-                        Quantity
-                      </th>
-                      <th className="px-4 py-2 font-medium text-right">
-                        Unit Price
-                      </th>
-                      <th className="px-4 py-2 font-medium text-right">
-                        Subtotal
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y dark:divide-slate-700">
-                    {selectedSale.items?.map((item, idx) => (
-                      <tr key={idx}>
-                        <td className="px-4 py-2">
-                          {item.product?.name || "Unknown Product"}
-                        </td>
-                        <td className="px-4 py-2 text-right">
-                          {item.quantity}
-                        </td>
-                        <td className="px-4 py-2 text-right">
-                          ${(item.unitPrice || 0).toFixed(2)}
-                        </td>
-                        <td className="px-4 py-2 text-right">
-                          ${(item.quantity * (item.unitPrice || 0)).toFixed(2)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-4 border-t dark:border-slate-700">
-              <div className="w-64 space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-slate-500 dark:text-slate-400">
-                    Subtotal:
-                  </span>
-                  <span>${(selectedSale.subTotal || 0).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500 dark:text-slate-400">
-                    Discount:
-                  </span>
-                  <span>${(selectedSale.discount || 0).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between font-bold text-slate-900 dark:text-white pt-2 border-t dark:border-slate-700">
-                  <span>Total Amount:</span>
-                  <span>${(selectedSale.totalAmount || 0).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-green-600 dark:text-green-400">
-                  <span>Paid Amount:</span>
-                  <span>${(selectedSale.paidAmount || 0).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-red-600 dark:text-red-400">
-                  <span>Due Amount:</span>
-                  <span>${(selectedSale.dueAmount || 0).toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        <SaleView saleId={selectedSaleId} />
       </Modal>
 
       <ConfirmDialog

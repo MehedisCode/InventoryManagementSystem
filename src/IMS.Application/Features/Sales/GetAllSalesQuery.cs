@@ -17,6 +17,7 @@ public class GetAllSalesQueryHandler(IUnitOfWork unitOfWork) : IRequestHandler<G
             Id = s.Id,
             ReferenceNo = s.ReferenceNo,
             CustomerName = s.Customer.Name,
+            CustomerId = s.CustomerId,
             SaleDate = s.SaleDate,
             TotalAmount = s.TotalAmount,
             PaidAmount = s.PaidAmount,

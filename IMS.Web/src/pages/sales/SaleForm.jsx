@@ -22,6 +22,7 @@ export default function SaleForm({ sale, onSuccess, onCancel }) {
     queryKey: ["customers"],
     queryFn: async () => {
       const res = await getCustomers();
+      console.log("customer : ", res?.data?.data);
       return res?.data?.data || [];
     },
   });
@@ -70,6 +71,7 @@ export default function SaleForm({ sale, onSuccess, onCancel }) {
   }, [products]);
 
   const defaultValues = useMemo(() => {
+    console.log("sale: ", sale);
     if (isEditing && sale) {
       return {
         customerId: sale.customerId || "",
@@ -105,6 +107,7 @@ export default function SaleForm({ sale, onSuccess, onCancel }) {
     control,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(saleSchema),
@@ -152,16 +155,50 @@ export default function SaleForm({ sale, onSuccess, onCancel }) {
     });
   };
 
+  useEffect(() => {
+    if (sale) {
+      reset({
+        customerId: sale.customerId || "",
+        saleDate: sale.saleDate
+          ? new Date(sale.saleDate).toISOString().split("T")[0]
+          : "",
+        status: sale.status || "Pending",
+        note: sale.note || "",
+        items:
+          sale.items?.map((i) => ({
+            productId: i.productId,
+            quantity: i.quantity,
+            unitPrice: i.unitPrice,
+          })) || [],
+        discount: sale.discount || 0,
+        paidAmount: sale.paidAmount || 0,
+      });
+    }
+  }, [sale, reset]);
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 flex flex-col">
       {/* Header Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Select
-          label="Customer *"
-          {...register("customerId")}
-          error={errors.customerId?.message}
-          options={customers.map((c) => ({ value: c.id, label: c.name }))}
-        />
+        {isEditing ? (
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              Customer
+            </label>
+            <div className="flex h-10 w-full items-center rounded-md border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 cursor-not-allowed">
+              {customers.find((c) => c.id === sale.customerId)?.name ||
+                sale.customerId}
+            </div>
+            <input type="hidden" {...register("customerId")} />
+          </div>
+        ) : (
+          <Select
+            label="Customer *"
+            {...register("customerId")}
+            error={errors.customerId?.message}
+            options={customers.map((c) => ({ value: c.id, label: c.name }))}
+          />
+        )}
         <Input
           label="Sale Date *"
           type="date"
@@ -184,7 +221,7 @@ export default function SaleForm({ sale, onSuccess, onCancel }) {
           </label>
           <textarea
             {...register("note")}
-            className="flex min-h-[80px] w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-900 dark:border-slate-700 dark:text-slate-100 dark:focus:ring-primary-400"
+            className="flex min-h-20 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-900 dark:border-slate-700 dark:text-slate-100 dark:focus:ring-primary-400"
           />
         </div>
       </div>
@@ -222,6 +259,7 @@ export default function SaleForm({ sale, onSuccess, onCancel }) {
               </tr>
             </thead>
             <tbody>
+              {console.log("Fields : ", fields)}
               {fields.map((field, index) => {
                 const currentProductId = watchedItems?.[index]?.productId;
                 const product = products.find((p) => p.id === currentProductId);
