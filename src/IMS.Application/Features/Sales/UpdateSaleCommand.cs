@@ -47,29 +47,30 @@ public class UpdateSaleCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<
         if (sale == null)
             throw new NotFoundException("Sale not found.", "ID");
 
+        // Load ALL relevant products in one query (old + new)
+        var allProductIds = sale.SaleItems.Select(i => i.ProductId)
+            .Union(request.Items.Select(i => i.ProductId))
+            .Distinct()
+            .ToList();
+
+        var productsList = await unitOfWork.Products.GetAsync(p => allProductIds.Contains(p.Id), cancellationToken);
+        var products = productsList.ToDictionary(p => p.Id);
+
         // Reverse previous stock deductions
         foreach (var oldItem in sale.SaleItems.ToList())
         {
-            var product = await unitOfWork.Products.GetByIdAsync(oldItem.ProductId, cancellationToken);
-            if (product != null)
-            {
+            if (products.TryGetValue(oldItem.ProductId, out var product))
                 product.StockQuantity += oldItem.Quantity;
-                await unitOfWork.Products.UpdateAsync(product, cancellationToken);
-            }
         }
 
-        // Load new products and validate stock
-        var productIds = request.Items.Select(i => i.ProductId).Distinct().ToList();
-        var productsList = await unitOfWork.Products.GetAsync(p => productIds.Contains(p.Id), cancellationToken);
-        var products = productsList.ToDictionary(p => p.Id);
-
+        // Validate new stock
         foreach (var itemDto in request.Items)
         {
             if (!products.TryGetValue(itemDto.ProductId, out var product))
                 throw new BusinessRuleException($"Product with ID {itemDto.ProductId} not found.");
 
             if (product.StockQuantity < itemDto.Quantity)
-                throw new BusinessRuleException($"Insufficient stock for product '{product.Name}'. Available: {product.StockQuantity}, Requested: {itemDto.Quantity}.");
+                throw new BusinessRuleException($"Insufficient stock for '{product.Name}'. Available: {product.StockQuantity}, Requested: {itemDto.Quantity}.");
         }
 
         // Clear old items and build new ones
@@ -91,9 +92,7 @@ public class UpdateSaleCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<
                 SubTotal = subTotal
             });
 
-            // Apply new stock deduction
             product.StockQuantity -= itemDto.Quantity;
-            await unitOfWork.Products.UpdateAsync(product, cancellationToken);
         }
 
         sale.CustomerId = request.CustomerId;
@@ -105,7 +104,6 @@ public class UpdateSaleCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<
         sale.Note = request.Note;
         sale.Status = request.Status;
 
-        await unitOfWork.Sales.UpdateAsync(sale, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return ApiResponse<bool>.SuccessResponse(true, "Sale updated successfully.");

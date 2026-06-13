@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -6,7 +6,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
-import { createSaleReturn, updateSaleReturn } from "../../api/saleReturnApi";
+import {
+  createSaleReturn,
+  updateSaleReturn,
+  getSaleReturn,
+} from "../../api/saleReturnApi";
 import { getSales } from "../../api/saleApi";
 import { getProducts } from "../../api/productApi";
 
@@ -28,9 +32,19 @@ const saleReturnSchema = z.object({
   items: z.array(saleReturnItemSchema).min(1, "At least 1 item is required"),
 });
 
-export default function SaleReturnForm({ saleReturn, onSuccess, onCancel }) {
+export default function SaleReturnForm({ saleReturnId, onSuccess, onCancel }) {
   const queryClient = useQueryClient();
-  const isEditing = !!saleReturn;
+  const isEditing = !!saleReturnId;
+
+  // Fetch full sale return details when editing
+  const { data: saleReturn } = useQuery({
+    queryKey: ["saleReturn", saleReturnId],
+    queryFn: async () => {
+      const res = await getSaleReturn(saleReturnId);
+      return res?.data?.data;
+    },
+    enabled: !!saleReturnId,
+  });
 
   const { data: salesRes } = useQuery({
     queryKey: ["sales"],
@@ -82,6 +96,7 @@ export default function SaleReturnForm({ saleReturn, onSuccess, onCancel }) {
     control,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(saleReturnSchema),
@@ -95,6 +110,25 @@ export default function SaleReturnForm({ saleReturn, onSuccess, onCancel }) {
 
   const watchedItems = useWatch({ control, name: "items" });
 
+  // Reset form when saleReturn data arrives
+  useEffect(() => {
+    if (saleReturn) {
+      reset({
+        saleId: saleReturn.saleId || "",
+        returnDate: saleReturn.returnDate
+          ? new Date(saleReturn.returnDate).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0],
+        reason: saleReturn.reason || "",
+        status: saleReturn.status || "Pending",
+        items: saleReturn.items?.map((i) => ({
+          productId: i.productId,
+          quantity: i.quantity,
+          unitPrice: i.unitPrice,
+        })) || [{ productId: "", quantity: 1, unitPrice: 0 }],
+      });
+    }
+  }, [saleReturn, reset]);
+
   const totalAmount = (watchedItems || []).reduce((sum, item) => {
     const q = Number(item.quantity) || 0;
     const p = Number(item.unitPrice) || 0;
@@ -104,7 +138,7 @@ export default function SaleReturnForm({ saleReturn, onSuccess, onCancel }) {
   const saveMutation = useMutation({
     mutationFn: (formData) =>
       isEditing
-        ? updateSaleReturn(saleReturn.id, formData)
+        ? updateSaleReturn(saleReturnId, formData)
         : createSaleReturn(formData),
     onSuccess: () => {
       toast.success(
@@ -184,8 +218,10 @@ export default function SaleReturnForm({ saleReturn, onSuccess, onCancel }) {
           </Button>
         </div>
 
-        {errors.items?.root?.message && (
-          <p className="text-sm text-red-500">{errors.items.root.message}</p>
+        {(errors.items?.message || errors.items?.root?.message) && (
+          <p className="text-sm text-red-500">
+            {errors.items?.message || errors.items?.root?.message}
+          </p>
         )}
 
         <div className="overflow-x-auto">
@@ -231,7 +267,7 @@ export default function SaleReturnForm({ saleReturn, onSuccess, onCancel }) {
                     <td className="px-4 py-2 align-top pt-4">
                       <Input
                         type="number"
-                        step="0.01"
+                        step="1"
                         {...register(`items.${index}.quantity`)}
                         error={errors.items?.[index]?.quantity?.message}
                       />
@@ -269,8 +305,8 @@ export default function SaleReturnForm({ saleReturn, onSuccess, onCancel }) {
         </div>
       </div>
 
-      {/* Summary Section */}
-      <div className="flex justify-end border-t dark:border-slate-800 pt-4 mt-4">
+      {/* Summary */}
+      <div className="flex justify-end border-t dark:border-slate-800 pt-4">
         <div className="w-full sm:w-1/2 md:w-1/3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg">
           <div className="flex justify-between items-center text-lg font-semibold">
             <span className="text-slate-900 dark:text-white">

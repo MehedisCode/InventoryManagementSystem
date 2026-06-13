@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Eye, Pencil, Trash2, Plus, CheckCircle, XCircle } from "lucide-react";
 import toast from "react-hot-toast";
@@ -22,7 +22,8 @@ import { formatDate } from "../../utils/formatters";
 export default function SaleReturnsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
-  const [selectedReturn, setSelectedReturn] = useState(null);
+  const [selectedReturnId, setSelectedReturnId] = useState(null); // store id only
+  const [selectedReturnRow, setSelectedReturnRow] = useState(null); // store row for view modal
   const [statusFilter, setStatusFilter] = useState("All");
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -42,12 +43,15 @@ export default function SaleReturnsPage() {
 
   const rawData = Array.isArray(saleReturnsRes) ? saleReturnsRes : [];
 
+  useEffect(() => {
+    console.log("sr : ", saleReturnsRes);
+  }, [saleReturnsRes]);
+
   const data = useMemo(() => {
     if (statusFilter === "All") return rawData;
     return rawData.filter((r) => r.status === statusFilter);
   }, [rawData, statusFilter]);
 
-  // Mutations
   const deleteMutation = useMutation({
     mutationFn: deleteSaleReturn,
     onSuccess: () => {
@@ -78,7 +82,6 @@ export default function SaleReturnsPage() {
     onError: () => toast.error("Failed to reject sale return"),
   });
 
-  // Action handlers
   const handleDelete = (record) => {
     setActionTarget(record);
     setIsDeleteDialogOpen(true);
@@ -103,9 +106,9 @@ export default function SaleReturnsPage() {
     { header: "Ref No", accessor: "referenceNo" },
     {
       header: "Sale Ref No",
-      render: (row) => row.sale?.referenceNo || "Unknown",
+      render: (row) => row.referenceNo || "Unknown",
     },
-    { header: "Customer", render: (row) => row.customer?.name || "Unknown" },
+    { header: "Customer", render: (row) => row.customerName || "Unknown" },
     { header: "Return Date", render: (row) => formatDate(row.returnDate) },
     {
       header: "Total Amount",
@@ -122,7 +125,7 @@ export default function SaleReturnsPage() {
         <div className="flex gap-2">
           <button
             onClick={() => {
-              setSelectedReturn(row);
+              setSelectedReturnRow(row);
               setIsViewOpen(true);
             }}
             className="p-1 text-slate-400 hover:text-blue-500 transition-colors"
@@ -133,7 +136,7 @@ export default function SaleReturnsPage() {
 
           <button
             onClick={() => {
-              setSelectedReturn(row);
+              setSelectedReturnId(row.id); // pass id only
               setIsFormOpen(true);
             }}
             className="p-1 text-slate-400 hover:text-amber-500 transition-colors"
@@ -182,7 +185,7 @@ export default function SaleReturnsPage() {
           <Button
             iconLeft={Plus}
             onClick={() => {
-              setSelectedReturn(null);
+              setSelectedReturnId(null);
               setIsFormOpen(true);
             }}
           >
@@ -213,25 +216,34 @@ export default function SaleReturnsPage() {
       {/* Form Modal */}
       <Modal
         isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        title={selectedReturn ? "Edit Sale Return" : "New Sale Return"}
-        size="4xl"
+        onClose={() => {
+          setIsFormOpen(false);
+          setSelectedReturnId(null);
+        }}
+        title={selectedReturnId ? "Edit Sale Return" : "New Sale Return"}
+        size="2xl"
       >
         <SaleReturnForm
-          saleReturn={selectedReturn}
-          onSuccess={() => setIsFormOpen(false)}
-          onCancel={() => setIsFormOpen(false)}
+          saleReturnId={selectedReturnId}
+          onSuccess={() => {
+            setIsFormOpen(false);
+            setSelectedReturnId(null);
+          }}
+          onCancel={() => {
+            setIsFormOpen(false);
+            setSelectedReturnId(null);
+          }}
         />
       </Modal>
 
-      {/* View Details Modal */}
+      {/* View Modal */}
       <Modal
         isOpen={isViewOpen}
         onClose={() => setIsViewOpen(false)}
         title="Sale Return Details"
         size="2xl"
       >
-        {selectedReturn && (
+        {selectedReturnRow && (
           <div className="space-y-6 text-sm text-slate-700 dark:text-slate-300">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg">
               <div>
@@ -239,7 +251,7 @@ export default function SaleReturnsPage() {
                   Ref No
                 </p>
                 <p className="font-medium text-slate-900 dark:text-white">
-                  {selectedReturn.referenceNo || "N/A"}
+                  {selectedReturnRow.referenceNo || "N/A"}
                 </p>
               </div>
               <div>
@@ -247,7 +259,7 @@ export default function SaleReturnsPage() {
                   Sale Ref No
                 </p>
                 <p className="font-medium text-slate-900 dark:text-white">
-                  {selectedReturn.sale?.referenceNo || "Unknown"}
+                  {selectedReturnRow.sale?.referenceNo || "Unknown"}
                 </p>
               </div>
               <div>
@@ -255,15 +267,15 @@ export default function SaleReturnsPage() {
                   Return Date
                 </p>
                 <p className="font-medium text-slate-900 dark:text-white">
-                  {formatDate(selectedReturn.returnDate)}
+                  {formatDate(selectedReturnRow.returnDate)}
                 </p>
               </div>
               <div>
                 <p className="text-slate-500 dark:text-slate-400 text-xs uppercase mb-1">
                   Status
                 </p>
-                <Badge status={selectedReturn.status}>
-                  {selectedReturn.status}
+                <Badge status={selectedReturnRow.status}>
+                  {selectedReturnRow.status}
                 </Badge>
               </div>
             </div>
@@ -273,7 +285,7 @@ export default function SaleReturnsPage() {
                 Reason
               </h4>
               <p className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border dark:border-slate-700">
-                {selectedReturn.reason || "-"}
+                {selectedReturnRow.reason || "-"}
               </p>
             </div>
 
@@ -298,7 +310,7 @@ export default function SaleReturnsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y dark:divide-slate-700">
-                    {selectedReturn.items?.map((item, idx) => (
+                    {selectedReturnRow.items?.map((item, idx) => (
                       <tr key={idx}>
                         <td className="px-4 py-2">
                           {item.product?.name || "Unknown Product"}
@@ -320,10 +332,12 @@ export default function SaleReturnsPage() {
             </div>
 
             <div className="flex justify-end pt-4 border-t dark:border-slate-700">
-              <div className="w-64 space-y-2">
+              <div className="w-64">
                 <div className="flex justify-between font-bold text-slate-900 dark:text-white pt-2">
                   <span>Total Amount:</span>
-                  <span>${(selectedReturn.totalAmount || 0).toFixed(2)}</span>
+                  <span>
+                    ${(selectedReturnRow.totalAmount || 0).toFixed(2)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -331,7 +345,6 @@ export default function SaleReturnsPage() {
         )}
       </Modal>
 
-      {/* Confirmations */}
       <ConfirmDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}

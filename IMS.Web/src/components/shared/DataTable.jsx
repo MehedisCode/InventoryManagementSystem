@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, Inbox } from "lucide-react";
 import Button from "../ui/Button";
 import Spinner from "../ui/Spinner";
@@ -32,6 +32,10 @@ export default function DataTable({
     setCurrentPage(1);
     if (onSearch) onSearch(val);
   };
+
+  useEffect(() => {
+    console.log("data : ", data);
+  }, [data]);
 
   return (
     <div className="rounded-lg border border-light-border bg-white shadow-sm dark:border-dark-border dark:bg-dark-card">

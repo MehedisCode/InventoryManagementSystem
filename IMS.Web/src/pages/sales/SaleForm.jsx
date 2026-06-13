@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
-import { createSale, updateSale } from "../../api/saleApi";
+import { getSale, createSale, updateSale } from "../../api/saleApi";
 import { getCustomers } from "../../api/customerApi";
 import { getProducts } from "../../api/productApi";
 
@@ -14,15 +14,14 @@ import Input from "../../components/ui/Input";
 import Select from "../../components/ui/Select";
 import Button from "../../components/ui/Button";
 
-export default function SaleForm({ sale, onSuccess, onCancel }) {
+export default function SaleForm({ saleId, onSuccess, onCancel }) {
   const queryClient = useQueryClient();
-  const isEditing = !!sale;
+  const isEditing = !!saleId;
 
   const { data: customersRes } = useQuery({
     queryKey: ["customers"],
     queryFn: async () => {
       const res = await getCustomers();
-      console.log("customer : ", res?.data?.data);
       return res?.data?.data || [];
     },
   });
@@ -36,6 +35,15 @@ export default function SaleForm({ sale, onSuccess, onCancel }) {
     },
   });
   const products = Array.isArray(productsRes) ? productsRes : [];
+
+  const { data: sale } = useQuery({
+    queryKey: ["sale", saleId],
+    queryFn: async () => {
+      const res = await getSale(saleId);
+      return res?.data?.data;
+    },
+    enabled: !!saleId,
+  });
 
   // Create schema dynamically to allow stock validation
   const saleSchema = useMemo(() => {
@@ -71,7 +79,6 @@ export default function SaleForm({ sale, onSuccess, onCancel }) {
   }, [products]);
 
   const defaultValues = useMemo(() => {
-    console.log("sale: ", sale);
     if (isEditing && sale) {
       return {
         customerId: sale.customerId || "",
@@ -158,7 +165,7 @@ export default function SaleForm({ sale, onSuccess, onCancel }) {
   useEffect(() => {
     if (sale) {
       reset({
-        customerId: sale.customerId || "",
+        customerId: sale?.customerId || "",
         saleDate: sale.saleDate
           ? new Date(sale.saleDate).toISOString().split("T")[0]
           : "",
@@ -186,8 +193,8 @@ export default function SaleForm({ sale, onSuccess, onCancel }) {
               Customer
             </label>
             <div className="flex h-10 w-full items-center rounded-md border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 cursor-not-allowed">
-              {customers.find((c) => c.id === sale.customerId)?.name ||
-                sale.customerId}
+              {customers.find((c) => c.id === sale?.customerId)?.name ||
+                sale?.CustomerName}
             </div>
             <input type="hidden" {...register("customerId")} />
           </div>
@@ -259,7 +266,6 @@ export default function SaleForm({ sale, onSuccess, onCancel }) {
               </tr>
             </thead>
             <tbody>
-              {console.log("Fields : ", fields)}
               {fields.map((field, index) => {
                 const currentProductId = watchedItems?.[index]?.productId;
                 const product = products.find((p) => p.id === currentProductId);

@@ -43,12 +43,10 @@ public class CreateSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
         if (sale.Status != SaleStatus.Completed)
             throw new BusinessRuleException("Only completed sales can have returns.");
 
-        // Build a lookup of original sale quantities per product
         var saleQtyByProduct = sale.SaleItems
             .GroupBy(si => si.ProductId)
             .ToDictionary(g => g.Key, g => g.Sum(si => si.Quantity));
 
-        // Validate return quantities
         foreach (var item in request.Items)
         {
             if (!saleQtyByProduct.TryGetValue(item.ProductId, out var maxQty))
@@ -57,12 +55,11 @@ public class CreateSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
                 throw new BusinessRuleException($"Return quantity ({item.Quantity}) exceeds original sale quantity ({maxQty}) for product {item.ProductId}.");
         }
 
-        // Load products
+        // Load products once — already tracked by EF Core after this
         var productIds = request.Items.Select(i => i.ProductId).Distinct().ToList();
         var productsList = await unitOfWork.Products.GetAsync(p => productIds.Contains(p.Id), cancellationToken);
         var products = productsList.ToDictionary(p => p.Id);
 
-        // Build return items and increase stock
         var totalAmount = 0m;
         var returnItems = new List<SaleReturnItem>();
 
@@ -82,12 +79,11 @@ public class CreateSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
                 SubTotal = subTotal
             });
 
-            // Increase stock for returned items
+            // Just mutate — EF Core tracks the change automatically
             product.StockQuantity += itemDto.Quantity;
-            await unitOfWork.Products.UpdateAsync(product, cancellationToken);
+            // ❌ removed: await unitOfWork.Products.UpdateAsync(product, cancellationToken);
         }
 
-        // Generate ReferenceNo
         var today = DateTime.UtcNow;
         var count = await unitOfWork.SaleReturns.CountAsync(r => r.CreatedAt.Date == today.Date, cancellationToken);
         var referenceNo = $"RET-{today:yyyyMMdd}-{(count + 1):D4}";
@@ -95,6 +91,7 @@ public class CreateSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
         var saleReturn = new SaleReturn
         {
             SaleId = request.SaleId,
+            Sale = sale,
             ReferenceNo = referenceNo,
             ReturnDate = request.ReturnDate,
             TotalAmount = totalAmount,
@@ -104,9 +101,8 @@ public class CreateSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
         };
 
         await unitOfWork.SaleReturns.AddAsync(saleReturn, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken); // saves everything: saleReturn + stock changes
 
         return ApiResponse<Guid>.SuccessResponse(saleReturn.Id, "Sale return created successfully.");
     }
 }
-
