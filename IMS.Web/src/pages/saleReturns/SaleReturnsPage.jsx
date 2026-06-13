@@ -17,13 +17,14 @@ import Modal from "../../components/ui/Modal";
 import Select from "../../components/ui/Select";
 import Badge from "../../components/ui/Badge";
 import SaleReturnForm from "./SaleReturnForm";
+import SaleReturnViewModal from "./SaleReturnViewModal";
 import { formatDate } from "../../utils/formatters";
 
 export default function SaleReturnsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
-  const [selectedReturnId, setSelectedReturnId] = useState(null); // store id only
-  const [selectedReturnRow, setSelectedReturnRow] = useState(null); // store row for view modal
+  const [selectedReturnId, setSelectedReturnId] = useState(null);
+  const [selectedReturnRow, setSelectedReturnRow] = useState(null);
   const [statusFilter, setStatusFilter] = useState("All");
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -42,10 +43,6 @@ export default function SaleReturnsPage() {
   });
 
   const rawData = Array.isArray(saleReturnsRes) ? saleReturnsRes : [];
-
-  useEffect(() => {
-    console.log("sr : ", saleReturnsRes);
-  }, [saleReturnsRes]);
 
   const data = useMemo(() => {
     if (statusFilter === "All") return rawData;
@@ -106,7 +103,7 @@ export default function SaleReturnsPage() {
     { header: "Ref No", accessor: "referenceNo" },
     {
       header: "Sale Ref No",
-      render: (row) => row.referenceNo || "Unknown",
+      render: (row) => row?.saleReferenceNo || "Unknown",
     },
     { header: "Customer", render: (row) => row.customerName || "Unknown" },
     { header: "Return Date", render: (row) => formatDate(row.returnDate) },
@@ -136,7 +133,7 @@ export default function SaleReturnsPage() {
 
           <button
             onClick={() => {
-              setSelectedReturnId(row.id); // pass id only
+              setSelectedReturnId(row.id);
               setIsFormOpen(true);
             }}
             className="p-1 text-slate-400 hover:text-amber-500 transition-colors"
@@ -193,7 +190,6 @@ export default function SaleReturnsPage() {
           </Button>
         }
       />
-
       <div className="flex justify-between items-center bg-white dark:bg-dark-card p-4 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
         <div className="flex items-center gap-4">
           <div className="w-48">
@@ -237,113 +233,14 @@ export default function SaleReturnsPage() {
       </Modal>
 
       {/* View Modal */}
-      <Modal
+      <SaleReturnViewModal
         isOpen={isViewOpen}
-        onClose={() => setIsViewOpen(false)}
-        title="Sale Return Details"
-        size="2xl"
-      >
-        {selectedReturnRow && (
-          <div className="space-y-6 text-sm text-slate-700 dark:text-slate-300">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg">
-              <div>
-                <p className="text-slate-500 dark:text-slate-400 text-xs uppercase mb-1">
-                  Ref No
-                </p>
-                <p className="font-medium text-slate-900 dark:text-white">
-                  {selectedReturnRow.referenceNo || "N/A"}
-                </p>
-              </div>
-              <div>
-                <p className="text-slate-500 dark:text-slate-400 text-xs uppercase mb-1">
-                  Sale Ref No
-                </p>
-                <p className="font-medium text-slate-900 dark:text-white">
-                  {selectedReturnRow.sale?.referenceNo || "Unknown"}
-                </p>
-              </div>
-              <div>
-                <p className="text-slate-500 dark:text-slate-400 text-xs uppercase mb-1">
-                  Return Date
-                </p>
-                <p className="font-medium text-slate-900 dark:text-white">
-                  {formatDate(selectedReturnRow.returnDate)}
-                </p>
-              </div>
-              <div>
-                <p className="text-slate-500 dark:text-slate-400 text-xs uppercase mb-1">
-                  Status
-                </p>
-                <Badge status={selectedReturnRow.status}>
-                  {selectedReturnRow.status}
-                </Badge>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="font-medium text-slate-900 dark:text-white mb-2">
-                Reason
-              </h4>
-              <p className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border dark:border-slate-700">
-                {selectedReturnRow.reason || "-"}
-              </p>
-            </div>
-
-            <div>
-              <h4 className="font-medium text-slate-900 dark:text-white mb-3 text-lg">
-                Items Returned
-              </h4>
-              <div className="overflow-x-auto border rounded-lg dark:border-slate-700">
-                <table className="w-full text-left">
-                  <thead className="bg-slate-50 dark:bg-slate-800/50 border-b dark:border-slate-700">
-                    <tr>
-                      <th className="px-4 py-2 font-medium">Product</th>
-                      <th className="px-4 py-2 font-medium text-right">
-                        Quantity
-                      </th>
-                      <th className="px-4 py-2 font-medium text-right">
-                        Unit Price
-                      </th>
-                      <th className="px-4 py-2 font-medium text-right">
-                        Subtotal
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y dark:divide-slate-700">
-                    {selectedReturnRow.items?.map((item, idx) => (
-                      <tr key={idx}>
-                        <td className="px-4 py-2">
-                          {item.product?.name || "Unknown Product"}
-                        </td>
-                        <td className="px-4 py-2 text-right">
-                          {item.quantity}
-                        </td>
-                        <td className="px-4 py-2 text-right">
-                          ${(item.unitPrice || 0).toFixed(2)}
-                        </td>
-                        <td className="px-4 py-2 text-right">
-                          ${(item.quantity * (item.unitPrice || 0)).toFixed(2)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-4 border-t dark:border-slate-700">
-              <div className="w-64">
-                <div className="flex justify-between font-bold text-slate-900 dark:text-white pt-2">
-                  <span>Total Amount:</span>
-                  <span>
-                    ${(selectedReturnRow.totalAmount || 0).toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </Modal>
+        onClose={() => {
+          setIsViewOpen(false);
+          setSelectedReturnRow(null);
+        }}
+        saleReturnId={selectedReturnRow?.id}
+      />
 
       <ConfirmDialog
         isOpen={isDeleteDialogOpen}

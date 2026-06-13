@@ -36,7 +36,6 @@ export default function SaleReturnForm({ saleReturnId, onSuccess, onCancel }) {
   const queryClient = useQueryClient();
   const isEditing = !!saleReturnId;
 
-  // Fetch full sale return details when editing
   const { data: saleReturn } = useQuery({
     queryKey: ["saleReturn", saleReturnId],
     queryFn: async () => {
@@ -110,7 +109,6 @@ export default function SaleReturnForm({ saleReturnId, onSuccess, onCancel }) {
 
   const watchedItems = useWatch({ control, name: "items" });
 
-  // Reset form when saleReturn data arrives
   useEffect(() => {
     if (saleReturn) {
       reset({
@@ -165,6 +163,7 @@ export default function SaleReturnForm({ saleReturnId, onSuccess, onCancel }) {
         <Select
           label="Sale Reference *"
           {...register("saleId")}
+          disabled
           error={errors.saleId?.message}
           options={sales.map((s) => ({
             value: s.id,
@@ -193,7 +192,7 @@ export default function SaleReturnForm({ saleReturnId, onSuccess, onCancel }) {
           </label>
           <textarea
             {...register("reason")}
-            className="flex min-h-[80px] w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-900 dark:border-slate-700 dark:text-slate-100 dark:focus:ring-primary-400"
+            className="flex min-h-20 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-900 dark:border-slate-700 dark:text-slate-100 dark:focus:ring-primary-400"
           />
           {errors.reason && (
             <p className="text-sm text-red-500 mt-1">{errors.reason.message}</p>
@@ -228,7 +227,7 @@ export default function SaleReturnForm({ saleReturnId, onSuccess, onCancel }) {
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-slate-700 uppercase bg-slate-50 dark:bg-slate-800 dark:text-slate-300">
               <tr>
-                <th className="px-4 py-3 min-w-[200px]">Product *</th>
+                <th className="px-4 py-3 min-w-50">Product *</th>
                 <th className="px-4 py-3 w-32">Quantity *</th>
                 <th className="px-4 py-3 w-32">Unit Price *</th>
                 <th className="px-4 py-3 w-32">SubTotal</th>

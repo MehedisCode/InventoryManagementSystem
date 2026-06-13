@@ -33,10 +33,6 @@ export default function DataTable({
     if (onSearch) onSearch(val);
   };
 
-  useEffect(() => {
-    console.log("data : ", data);
-  }, [data]);
-
   return (
     <div className="rounded-lg border border-light-border bg-white shadow-sm dark:border-dark-border dark:bg-dark-card">
       <div className="flex flex-col gap-4 border-b border-light-border p-4 sm:flex-row sm:items-center sm:justify-between dark:border-dark-border">

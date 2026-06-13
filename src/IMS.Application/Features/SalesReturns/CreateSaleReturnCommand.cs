@@ -55,7 +55,6 @@ public class CreateSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
                 throw new BusinessRuleException($"Return quantity ({item.Quantity}) exceeds original sale quantity ({maxQty}) for product {item.ProductId}.");
         }
 
-        // Load products once — already tracked by EF Core after this
         var productIds = request.Items.Select(i => i.ProductId).Distinct().ToList();
         var productsList = await unitOfWork.Products.GetAsync(p => productIds.Contains(p.Id), cancellationToken);
         var products = productsList.ToDictionary(p => p.Id);
@@ -79,9 +78,7 @@ public class CreateSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
                 SubTotal = subTotal
             });
 
-            // Just mutate — EF Core tracks the change automatically
             product.StockQuantity += itemDto.Quantity;
-            // ❌ removed: await unitOfWork.Products.UpdateAsync(product, cancellationToken);
         }
 
         var today = DateTime.UtcNow;
@@ -101,7 +98,7 @@ public class CreateSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
         };
 
         await unitOfWork.SaleReturns.AddAsync(saleReturn, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken); // saves everything: saleReturn + stock changes
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return ApiResponse<Guid>.SuccessResponse(saleReturn.Id, "Sale return created successfully.");
     }

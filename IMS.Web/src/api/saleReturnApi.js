@@ -2,7 +2,8 @@ import axiosInstance from "./axiosInstance";
 
 export const getSaleReturns = () => axiosInstance.get("/api/sale-returns");
 
-export const getSaleReturn = (id) => axiosInstance.get(`/api/sale-returns/${id}`);
+export const getSaleReturn = (id) =>
+  axiosInstance.get(`/api/sale-returns/${id}`);
 
 export const createSaleReturn = (data) =>
   axiosInstance.post("/api/sale-returns", data);

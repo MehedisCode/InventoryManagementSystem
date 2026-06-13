@@ -33,7 +33,8 @@ public class UpdateSaleReturnCommandValidator : AbstractValidator<UpdateSaleRetu
     }
 }
 
-public class UpdateSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<UpdateSaleReturnCommand, ApiResponse<bool>>
+public class UpdateSaleReturnCommandHandler(IUnitOfWork unitOfWork)
+    : IRequestHandler<UpdateSaleReturnCommand, ApiResponse<bool>>
 {
     public async Task<ApiResponse<bool>> Handle(UpdateSaleReturnCommand request, CancellationToken cancellationToken)
     {
@@ -44,23 +45,19 @@ public class UpdateSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
         if (saleReturn.Status != ReturnStatus.Pending)
             throw new BusinessRuleException("Only pending returns can be updated.");
 
-        // Reverse previous stock increases
-        foreach (var oldItem in saleReturn.SaleReturnItems.ToList())
-        {
-            var product = await unitOfWork.Products.GetByIdAsync(oldItem.ProductId, cancellationToken);
-            if (product != null)
-            {
-                product.StockQuantity -= oldItem.Quantity;
-                await unitOfWork.Products.UpdateAsync(product, cancellationToken);
-            }
-        }
+        var oldProductIds = saleReturn.SaleReturnItems.Select(i => i.ProductId);
+        var newProductIds = request.Items.Select(i => i.ProductId);
+        var allProductIds = oldProductIds.Union(newProductIds).Distinct().ToList();
 
-        // Load new products
-        var productIds = request.Items.Select(i => i.ProductId).Distinct().ToList();
-        var productsList = await unitOfWork.Products.GetAsync(p => productIds.Contains(p.Id), cancellationToken);
+        var productsList = await unitOfWork.Products.GetAsync(p => allProductIds.Contains(p.Id), cancellationToken);
         var products = productsList.ToDictionary(p => p.Id);
 
-        // Validate against original sale quantities
+        foreach (var oldItem in saleReturn.SaleReturnItems.ToList())
+        {
+            if (products.TryGetValue(oldItem.ProductId, out var product))
+                product.StockQuantity -= oldItem.Quantity;
+        }
+
         var sale = await unitOfWork.Sales.GetByIdWithDetailsAsync(saleReturn.SaleId, cancellationToken);
         if (sale != null)
         {
@@ -77,7 +74,6 @@ public class UpdateSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
             }
         }
 
-        // Rebuild items and apply new stock increases
         saleReturn.SaleReturnItems.Clear();
         var totalAmount = 0m;
 
@@ -99,7 +95,6 @@ public class UpdateSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
             });
 
             product.StockQuantity += itemDto.Quantity;
-            await unitOfWork.Products.UpdateAsync(product, cancellationToken);
         }
 
         saleReturn.ReturnDate = request.ReturnDate;
@@ -113,4 +108,3 @@ public class UpdateSaleReturnCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
         return ApiResponse<bool>.SuccessResponse(true, "Sale return updated successfully.");
     }
 }
-
