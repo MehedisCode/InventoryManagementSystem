@@ -14,9 +14,12 @@ export const formatDate = (date) => {
 
 export const formatDateTime = (date) => {
   if (!date) return "";
-  return format(new Date(date), "MMM dd, yyyy hh:mm a");
-};
 
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "";
+
+  return format(d, "MMM dd, yyyy hh:mm a");
+};
 export const formatStatus = (status) => {
   if (!status) return "";
   return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
