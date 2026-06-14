@@ -1,10 +1,18 @@
 import axiosInstance from "./axiosInstance";
-export const getBalanceTransfers = () => axiosInstance.get("/balanceTransfers");
-export const getBalanceTransfer = (id) =>
-  axiosInstance.get(`/balanceTransfers/${id}`);
-export const createBalanceTransfer = (data) =>
-  axiosInstance.post("/balanceTransfers", data);
-export const updateBalanceTransfer = (id, data) =>
-  axiosInstance.put(`/balanceTransfers/${id}`, data);
-export const deleteBalanceTransfer = (id) =>
-  axiosInstance.delete(`/balanceTransfers/${id}`);
+
+const BASE = "/api/balance-transfers";
+
+export const getAll = (status) =>
+  axiosInstance.get(BASE, { params: status ? { status } : undefined });
+
+export const getById = (id) => axiosInstance.get(`${BASE}/${id}`);
+
+export const create = (data) => axiosInstance.post(BASE, data);
+
+export const update = (id, data) => axiosInstance.put(`${BASE}/${id}`, data);
+
+export const deleteTransfer = (id) => axiosInstance.delete(`${BASE}/${id}`);
+
+export const complete = (id) => axiosInstance.post(`${BASE}/${id}/complete`);
+
+export const cancel = (id) => axiosInstance.post(`${BASE}/${id}/cancel`);
