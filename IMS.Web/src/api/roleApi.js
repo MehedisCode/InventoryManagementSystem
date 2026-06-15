@@ -1,6 +1,9 @@
 import axiosInstance from "./axiosInstance";
-export const getRoles = () => axiosInstance.get("/roles");
-export const getRole = (id) => axiosInstance.get(`/roles/${id}`);
-export const createRole = (data) => axiosInstance.post("/roles", data);
-export const updateRole = (id, data) => axiosInstance.put(`/roles/${id}`, data);
-export const deleteRole = (id) => axiosInstance.delete(`/roles/${id}`);
+
+const BASE = "/api/roles";
+
+export const getAll = () => axiosInstance.get(BASE);
+export const getById = (id) => axiosInstance.get(`${BASE}/${id}`);
+export const create = (data) => axiosInstance.post(BASE, data);
+export const update = (id, data) => axiosInstance.put(`${BASE}/${id}`, data);
+export const deleteRole = (id) => axiosInstance.delete(`${BASE}/${id}`);

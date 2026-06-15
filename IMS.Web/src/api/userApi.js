@@ -1,6 +1,16 @@
 import axiosInstance from "./axiosInstance";
-export const getUsers = () => axiosInstance.get("/users");
-export const getUser = (id) => axiosInstance.get(`/users/${id}`);
-export const createUser = (data) => axiosInstance.post("/users", data);
-export const updateUser = (id, data) => axiosInstance.put(`/users/${id}`, data);
-export const deleteUser = (id) => axiosInstance.delete(`/users/${id}`);
+
+const BASE = "/api/Users";
+
+export const getAll = () => axiosInstance.get(BASE);
+export const getById = (id) => axiosInstance.get(`${BASE}/${id}`);
+export const create = (data) => axiosInstance.post(BASE, data);
+export const update = (id, data) => axiosInstance.put(`${BASE}/${id}`, data);
+
+export const deleteUser = (id) => axiosInstance.delete(`${BASE}/${id}`);
+
+export const toggleStatus = (id) =>
+  axiosInstance.post(`${BASE}/${id}/toggle-status`);
+
+export const changePassword = (id, data) =>
+  axiosInstance.post(`${BASE}/${id}/change-password`, data);
