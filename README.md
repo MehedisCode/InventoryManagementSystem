@@ -38,23 +38,6 @@ From the solution root:
 docker compose up --build
 ```
 
-That brings up the full stack:
-
-| Service  | Port (host) | Notes                                                                           |
-| -------- | ----------- | ------------------------------------------------------------------------------- |
-| API      | `5000`      | ASP.NET Core on container port `8080`                                           |
-| Postgres | `5432`      | `ims` / `inventorydb` / password `ims_pw_2024`                                  |
-| Redis    | `6379`      |                                                                                 |
-| pgAdmin  | `5050`      | Dev only (via `docker-compose.override.yml`), login `admin@ims.local` / `admin` |
-
-A named volume `postgres_data` persists the database across `docker compose down`.
-
-> The base `docker-compose.yml` runs the API in **Production** mode (Swagger disabled).
-> The override file switches the API to the SDK image with `dotnet watch` for hot reload
-> and `ASPNETCORE_ENVIRONMENT=Development` (Swagger enabled at `/swagger`).
-> Run `docker compose -f docker-compose.yml up --build` to use the production stack
-> without the dev overlay.
-
 ### Default credentials
 
 The API seeds an admin user on first startup:
@@ -89,58 +72,6 @@ npm run dev
 
 EF Core migrations are **applied automatically** on startup (added in
 `Program.cs` alongside the existing role/admin seeding).
-
-## API documentation
-
-Once the API is running in Development mode:
-
-- Swagger UI: <http://localhost:5000/swagger>
-- OpenAPI JSON: <http://localhost:5000/swagger/v1/swagger.json>
-
-In Production mode (the default in `docker-compose.yml`), Swagger is disabled.
-
-## Architecture
-
-```
-                ┌──────────────────────┐
-                │  React + Vite (host) │  http://localhost:3000
-                └──────────┬───────────┘
-                           │ HTTP + JWT
-                           ▼
-                ┌──────────────────────┐
-                │  IMS.API  (Docker)   │  http://localhost:5000 → :8080
-                │  ASP.NET Core 10     │
-                └─────┬──────────┬─────┘
-                      │          │
-                      ▼          ▼
-            ┌────────────┐  ┌──────────┐
-            │ PostgreSQL │  │  Redis   │
-            │   15       │  │    7     │
-            └────────────┘  └──────────┘
-```
-
-### Solution layout
-
-```
-InventoryManagementSystem.slnx
-src/
-├── IMS.API/              # Entry point, controllers, Program.cs, Dockerfile
-├── IMS.Application/      # MediatR handlers, validators, DTOs, interfaces
-├── IMS.Domain/           # Entities, enums
-└── IMS.Infrastructure/   # EF Core, Identity, repositories, JWT, Redis, services
-IMS.Web/                  # React 19 + Vite frontend (separate package)
-docker-compose.yml        # API + Postgres + Redis
-docker-compose.override.yml  # Dev: hot-reload API + pgAdmin
-```
-
-## Security notes
-
-- The JWT secret and Postgres password in `docker-compose.yml` are **placeholders**.
-  Replace them (ideally via a `.env` file consumed by Compose, or a secret manager)
-  before any non-local deployment.
-- The default admin password (`Admin@123`) should be rotated in any real environment.
-- HTTPS termination is expected at a reverse proxy in front of the container —
-  `UseHttpsRedirection` is disabled in `Production` for that reason.
 
 ## Useful commands
 
