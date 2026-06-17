@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using IMS.Infrastructure.Repositories;
+using StackExchange.Redis;
 
 namespace IMS.Infrastructure;
 
@@ -42,6 +43,14 @@ public static class DependencyInjection
         services.AddScoped<ICurrencyRepository, CurrencyRepository>();
         services.AddScoped<ICompanyRepository, CompanyRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        var redisConnection = configuration["RedisConnection"]
+            ?? throw new InvalidOperationException("RedisConnection is missing from configuration.");
+        services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConnection));
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConnection;
+        });
 
         return services;
     }
