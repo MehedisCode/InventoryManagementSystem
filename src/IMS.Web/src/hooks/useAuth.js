@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../store/authStore";
 import { login as loginApi, getMe } from "../api/authApi";
 import { useNavigate } from "react-router-dom";
@@ -16,8 +16,8 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: ({ email, password }) => loginApi(email, password),
     onSuccess: (response) => {
-      const { token, user } = response.data.data;
-      storeLogin(user, token);
+      const { token, fullName, email, role } = response.data.data;
+      storeLogin({ fullName, email, role }, token);
       toast.success("Successfully logged in!");
       navigate("/dashboard");
     },
@@ -30,11 +30,13 @@ export const useLogin = () => {
 };
 
 export const useLogout = () => {
+  const queryClient = useQueryClient();
   const { logout: storeLogout } = useAuthStore();
   const navigate = useNavigate();
 
   return () => {
     storeLogout();
+    queryClient.clear();
     navigate("/login");
   };
 };
