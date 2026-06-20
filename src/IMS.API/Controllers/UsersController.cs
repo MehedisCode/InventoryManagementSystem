@@ -1,5 +1,6 @@
 using IMS.Application.Common;
 using IMS.Application.Features.Users;
+using IMS.Domain.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +9,7 @@ namespace IMS.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = Roles.Admin)]
 public class UsersController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
@@ -44,9 +45,9 @@ public class UsersController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult<ApiResponse<bool>>> Delete(string id, CancellationToken cancellationToken)
+    public async Task<ActionResult<ApiResponse<bool>>> Deactivate(string id, CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new DeleteUserCommand(id), cancellationToken);
+        var result = await mediator.Send(new DeactivateUserCommand(id), cancellationToken);
 
         return Ok(result);
     }

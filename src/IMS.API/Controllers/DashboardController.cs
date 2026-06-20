@@ -1,14 +1,15 @@
 using MediatR;
 using IMS.Application.Common;
-using Microsoft.AspNetCore.Mvc;
 using IMS.Application.Features.Dashboard;
+using IMS.Domain.Constants;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
 namespace IMS.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = Roles.Admin)]
 public class DashboardController(IMediator mediator) : ControllerBase
 {
     [HttpGet("summary")]

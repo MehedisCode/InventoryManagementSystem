@@ -18,7 +18,7 @@ public class LoginCommandHandler(UserManager<ApplicationUser> userManager, IJwtS
 
         var isPasswordValid = await userManager.CheckPasswordAsync(user, request.Password);
 
-        if (!isPasswordValid)
+        if (!isPasswordValid || !user.IsActive)
             throw new BusinessRuleException("Invalid credentials.");
 
         var roles = await userManager.GetRolesAsync(user);
@@ -28,7 +28,8 @@ public class LoginCommandHandler(UserManager<ApplicationUser> userManager, IJwtS
         {
             Token = token,
             Email = user.Email ?? string.Empty,
-            FullName = user.FullName
+            FullName = user.FullName,
+            Role = roles.FirstOrDefault(r => !string.IsNullOrEmpty(r)) ?? string.Empty
         };
 
         return ApiResponse<LoginResponse>.SuccessResponse(response, "Login successful.");

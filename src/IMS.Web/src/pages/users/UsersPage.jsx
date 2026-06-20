@@ -3,11 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2, Plus, Power, Key } from "lucide-react";
 import toast from "react-hot-toast";
 
-import {
-  getAll,
-  deleteUser,
-  toggleStatus,
-} from "../../api/userApi";
+import { getAll, deactivateUser, toggleStatus } from "../../api/userApi";
 import PageHeader from "../../components/ui/PageHeader";
 import Button from "../../components/ui/Button";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
@@ -42,13 +38,13 @@ export default function UsersPage() {
 
   // Mutations
   const deleteMutation = useMutation({
-    mutationFn: deleteUser,
+    mutationFn: deactivateUser,
     onSuccess: () => {
-      toast.success("User deleted successfully");
+      toast.success("User deactivated successfully");
       queryClient.invalidateQueries({ queryKey: ["users"] });
       setIsDeleteDialogOpen(false);
     },
-    onError: () => toast.error("Failed to delete user"),
+    onError: () => toast.error("Failed to deactivate user"),
   });
 
   const toggleStatusMutation = useMutation({
@@ -156,7 +152,7 @@ export default function UsersPage() {
           <button
             onClick={() => handleDelete(row)}
             className="p-1 text-slate-400 hover:text-red-500 transition-colors"
-            title="Delete"
+            title="Deactivate"
           >
             <Trash2 className="w-4 h-4" />
           </button>
@@ -212,8 +208,8 @@ export default function UsersPage() {
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={confirmDelete}
-        title="Delete User"
-        message="Are you sure you want to delete this user? This action cannot be undone."
+        title="Deactivate User"
+        message="Are you sure you want to deactivate this user? They will no longer be able to sign in."
         isDanger
       />
     </div>

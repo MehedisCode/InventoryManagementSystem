@@ -11,9 +11,6 @@ import DataTable from "../../components/shared/DataTable";
 import Modal from "../../components/ui/Modal";
 import RoleForm from "./RoleForm";
 
-const SYSTEM_ROLES = ["Admin", "Manager", "Staff"];
-const isSystemRole = (name) => SYSTEM_ROLES.includes(name);
-
 export default function RolesPage() {
   const queryClient = useQueryClient();
 
@@ -54,7 +51,7 @@ export default function RolesPage() {
   };
 
   const handleDelete = (record) => {
-    if (isSystemRole(record.name)) return;
+    if (record.isSystem) return;
     setActionTarget(record);
     setIsDeleteDialogOpen(true);
   };
@@ -76,7 +73,7 @@ export default function RolesPage() {
     {
       header: "Actions",
       render: (row) => {
-        const system = isSystemRole(row.name);
+        const system = row.isSystem;
         return (
           <div className="flex gap-2">
             <button

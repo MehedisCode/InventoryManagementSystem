@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Application.Constants;
 using IMS.Application.Features.Categories.Commands;
 using IMS.Application.Features.Categories.DTOs;
 using IMS.Application.Features.Categories.Queries;
@@ -11,26 +12,19 @@ namespace IMS.API.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public class CategoriesController : ControllerBase
+public class CategoriesController(IMediator mediator) : ControllerBase
 {
-    private readonly IMediator _mediator;
-
-    public CategoriesController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
-
     [HttpGet]
     public async Task<ActionResult<ApiResponse<List<CategoryDto>>>> GetAll()
     {
-        var response = await _mediator.Send(new GetAllCategoriesQuery());
+        var response = await mediator.Send(new GetAllCategoriesQuery());
         return Ok(response);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<ApiResponse<CategoryDto>>> GetById(Guid id)
     {
-        var response = await _mediator.Send(new GetCategoryByIdQuery(id));
+        var response = await mediator.Send(new GetCategoryByIdQuery(id));
         if (!response.Success)
             return NotFound(response);
 
@@ -38,9 +32,10 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<Guid>>> Create([FromBody] CreateCategoryCommand command)
     {
-        var response = await _mediator.Send(command);
+        var response = await mediator.Send(command);
         if (!response.Success)
             return BadRequest(response);
 
@@ -48,6 +43,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<bool>>> Update(Guid id, [FromBody] UpdateCategoryRequest request)
     {
         var command = new UpdateCategoryCommand(
@@ -56,7 +52,7 @@ public class CategoriesController : ControllerBase
             Description: request.Description
         );
 
-        var response = await _mediator.Send(command);
+        var response = await mediator.Send(command);
         if (!response.Success)
             return NotFound(response);
 
@@ -64,9 +60,10 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id)
     {
-        var response = await _mediator.Send(new DeleteCategoryCommand(id));
+        var response = await mediator.Send(new DeleteCategoryCommand(id));
         if (!response.Success)
             return NotFound(response);
 

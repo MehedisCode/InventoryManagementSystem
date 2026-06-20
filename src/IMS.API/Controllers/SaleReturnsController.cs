@@ -1,8 +1,9 @@
-using MediatR;
 using IMS.Application.Common;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
+using IMS.Application.Constants;
 using IMS.Application.Features.SalesReturns;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace IMS.API.Controllers;
 
@@ -27,6 +28,7 @@ public class SaleReturnsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<Guid>>> Create([FromBody] CreateSaleReturnCommand command, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(command, cancellationToken);
@@ -35,6 +37,7 @@ public class SaleReturnsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<bool>>> Update(Guid id, [FromBody] UpdateSaleReturnCommand command, CancellationToken cancellationToken)
     {
         command.Id = id;
@@ -44,6 +47,7 @@ public class SaleReturnsController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new DeleteSaleReturnCommand(id), cancellationToken);
@@ -52,6 +56,7 @@ public class SaleReturnsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("{id:guid}/approve")]
+    [Authorize(Policy = Policies.CanTransition)]
     public async Task<ActionResult<ApiResponse<bool>>> Approve(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new ApproveSaleReturnCommand(id), cancellationToken);
@@ -60,6 +65,7 @@ public class SaleReturnsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("{id:guid}/reject")]
+    [Authorize(Policy = Policies.CanTransition)]
     public async Task<ActionResult<ApiResponse<bool>>> Reject(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new RejectSaleReturnCommand(id), cancellationToken);

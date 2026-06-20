@@ -1,13 +1,14 @@
-using IMS.Application.Common;
-using IMS.Application.Features.Sales;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
+using IMS.Application.Common;
 using Microsoft.AspNetCore.Mvc;
+using IMS.Application.Constants;
+using IMS.Application.Features.Sales;
+using Microsoft.AspNetCore.Authorization;
 
 namespace IMS.API.Controllers;
 
 [ApiController]
-[Route("api/sales")]
+[Route("api/[controller]")]
 [Authorize]
 public class SalesController(IMediator mediator) : ControllerBase
 {
@@ -27,6 +28,7 @@ public class SalesController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<Guid>>> Create([FromBody] CreateSaleCommand command, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(command, cancellationToken);
@@ -35,6 +37,7 @@ public class SalesController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<bool>>> Update(Guid id, [FromBody] UpdateSaleCommand command, CancellationToken cancellationToken)
     {
         command.Id = id;
@@ -44,6 +47,7 @@ public class SalesController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new DeleteSaleCommand(id), cancellationToken);

@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Application.Constants;
 using IMS.Application.Features.Quotations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -34,6 +35,7 @@ public class QuotationsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<Guid>>> Create([FromBody] CreateQuotationCommand command, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(command, cancellationToken);
@@ -42,6 +44,7 @@ public class QuotationsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<bool>>> Update(Guid id, [FromBody] UpdateQuotationCommand command, CancellationToken cancellationToken)
     {
         command.Id = id;
@@ -51,6 +54,7 @@ public class QuotationsController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new DeleteQuotationCommand(id), cancellationToken);
@@ -59,6 +63,7 @@ public class QuotationsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("{id:guid}/convert-to-sale")]
+    [Authorize(Policy = Policies.CanTransition)]
     public async Task<ActionResult<ApiResponse<Guid>>> ConvertToSale(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new ConvertToSaleCommand(id), cancellationToken);

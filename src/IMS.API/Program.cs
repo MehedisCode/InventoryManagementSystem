@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using IMS.Domain.Constants;
 using IMS.Domain.Entities;
 using IMS.Infrastructure.Persistence;
 using IMS.API.Extensions;
@@ -63,7 +64,7 @@ using (var scope = app.Services.CreateScope())
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-    var roles = new[] { "Admin", "Manager", "Staff" };
+    var roles = new[] { Roles.Admin, Roles.Manager, Roles.Staff };
 
     foreach (var role in roles)
     {
@@ -98,9 +99,23 @@ using (var scope = app.Services.CreateScope())
         Log.Information("Seeded demo user {Email} with role {Role}", email, role);
     }
 
-    await EnsureDemoUserAsync("admin@ims.com", "System Admin", "Admin@123", "Admin");
-    await EnsureDemoUserAsync("manager@ims.com", "Demo Manager", "Manager@123", "Manager");
-    await EnsureDemoUserAsync("staff@ims.com", "Demo Staff", "Staff@123", "Staff");
+    var demoSection = app.Configuration.GetSection("DemoAccounts");
+    var demoAccounts = new[]
+    {
+        (Role: Roles.Admin,   Email: demoSection["Admin:Email"],   Password: demoSection["Admin:Password"],   FullName: "System Admin"),
+        (Role: Roles.Manager, Email: demoSection["Manager:Email"], Password: demoSection["Manager:Password"], FullName: "Demo Manager"),
+        (Role: Roles.Staff,   Email: demoSection["Staff:Email"],   Password: demoSection["Staff:Password"],   FullName: "Demo Staff"),
+    };
+
+    foreach (var (Role, Email, Password, FullName) in demoAccounts)
+    {
+        if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
+        {
+            throw new InvalidOperationException(
+                $"Demo account for role '{Role}' is missing Email or Password in configuration under 'DemoAccounts'.");
+        }
+        await EnsureDemoUserAsync(Email, FullName, Password, Role);
+    }
 }
 
 app.MapControllers();

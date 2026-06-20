@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Application.Constants;
 using IMS.Application.Features.BalanceTransfers;
 using IMS.Domain.Enums;
 using MediatR;
@@ -28,6 +29,7 @@ public class BalanceTransfersController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<Guid>>> Create(
         [FromBody] CreateBalanceTransferCommand command,
         CancellationToken cancellationToken)
@@ -38,6 +40,7 @@ public class BalanceTransfersController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<bool>>> Update(
         Guid id,
         [FromBody] UpdateBalanceTransferCommand command,
@@ -50,6 +53,7 @@ public class BalanceTransfersController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new DeleteBalanceTransferCommand(id), cancellationToken);
@@ -58,6 +62,7 @@ public class BalanceTransfersController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("{id:guid}/complete")]
+    [Authorize(Policy = Policies.CanTransition)]
     public async Task<ActionResult<ApiResponse<bool>>> Complete(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new CompleteTransferCommand(id), cancellationToken);
@@ -66,6 +71,7 @@ public class BalanceTransfersController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("{id:guid}/cancel")]
+    [Authorize(Policy = Policies.CanTransition)]
     public async Task<ActionResult<ApiResponse<bool>>> Cancel(Guid id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new CancelTransferCommand(id), cancellationToken);

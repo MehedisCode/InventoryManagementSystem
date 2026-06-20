@@ -1,5 +1,6 @@
 using IMS.Application.Common;
 using IMS.Application.Features.Units;
+using IMS.Domain.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +9,7 @@ namespace IMS.API.Controllers;
 
 [ApiController]
 [Route("api/setup/[controller]")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = Roles.Admin)]
 public class UnitsController(IMediator mediator) : ControllerBase
 {
     [HttpGet]

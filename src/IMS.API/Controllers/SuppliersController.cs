@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Application.Constants;
 using IMS.Application.Features.Suppliers;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -27,6 +28,7 @@ public class SuppliersController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<Guid>>> Create([FromBody] CreateSupplierCommand command)
     {
         var response = await mediator.Send(command);
@@ -35,6 +37,7 @@ public class SuppliersController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<bool>>> Update(Guid id, [FromBody] UpdateSupplierCommand command)
     {
         if (id != command.Id) return BadRequest(ApiResponse<bool>.ErrorResponse("ID mismatch."));
@@ -44,6 +47,7 @@ public class SuppliersController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id)
     {
         var response = await mediator.Send(new DeleteSupplierCommand(id));

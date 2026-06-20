@@ -1,5 +1,6 @@
 using MediatR;
 using IMS.Application.Common;
+using IMS.Domain.Constants;
 using IMS.Domain.Exceptions;
 using Microsoft.AspNetCore.Identity;
 
@@ -22,7 +23,8 @@ public class GetRoleByIdQueryHandler(RoleManager<IdentityRole> roleManager) : IR
         {
             Id = role.Id,
             Name = role.Name ?? string.Empty,
-            UserCount = 0
+            UserCount = 0,
+            IsSystem = role.Name.IsSystemRole()
         };
 
         return ApiResponse<RoleDto>.SuccessResponse(result);

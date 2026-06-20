@@ -1,5 +1,6 @@
 using FluentValidation;
 using IMS.Application.Common;
+using IMS.Domain.Constants;
 using IMS.Domain.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -29,7 +30,7 @@ public class UpdateRoleCommandHandler(RoleManager<IdentityRole> roleManager) : I
         if (role == null)
             throw new NotFoundException("Role not found.", "ID");
 
-        if (role.Name == "Admin" || role.Name == "Manager" || role.Name == "Staff")
+        if (role.Name.IsSystemRole())
             throw new BusinessRuleException("Cannot update default system roles.");
 
         if (await roleManager.RoleExistsAsync(request.Name) && role.Name != request.Name)

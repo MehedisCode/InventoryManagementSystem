@@ -1,9 +1,11 @@
 using FluentValidation;
 using IMS.Application.Common;
+using IMS.Application.Interfaces;
 using IMS.Domain.Exceptions;
 using IMS.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using IMSRoles = IMS.Domain.Constants.Roles;
 
 namespace IMS.Application.Features.Users;
 
@@ -27,7 +29,10 @@ public class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
     }
 }
 
-public class UpdateUserCommandHandler(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+public class UpdateUserCommandHandler(
+    UserManager<ApplicationUser> userManager,
+    RoleManager<IdentityRole> roleManager,
+    ITransactionScopeFactory transactionScopeFactory)
     : IRequestHandler<UpdateUserCommand, ApiResponse<bool>>
 {
     public async Task<ApiResponse<bool>> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
@@ -46,6 +51,15 @@ public class UpdateUserCommandHandler(UserManager<ApplicationUser> userManager, 
         if (!await roleManager.RoleExistsAsync(request.RoleName))
             throw new BusinessRuleException("Specified role does not exist.");
 
+        if (!request.IsActive && user.IsActive
+                              && await userManager.IsInRoleAsync(user, IMSRoles.Admin))
+        {
+            var admins = await userManager.GetUsersInRoleAsync(IMSRoles.Admin);
+            var activeAdmins = admins.Count(a => a.IsActive);
+            if (activeAdmins <= 1)
+                throw new BusinessRuleException("Cannot deactivate the last active Admin user.");
+        }
+
         user.FullName = request.FullName;
         user.Email = request.Email;
         user.UserName = request.Email;
@@ -59,9 +73,20 @@ public class UpdateUserCommandHandler(UserManager<ApplicationUser> userManager, 
             throw new BusinessRuleException($"Failed to update user: {errors}");
         }
 
+        await using var tx = await transactionScopeFactory.BeginAsync(cancellationToken);
+
+        if (await userManager.IsInRoleAsync(user, IMSRoles.Admin) && request.RoleName != IMSRoles.Admin)
+        {
+            var admins = await userManager.GetUsersInRoleAsync(IMSRoles.Admin);
+            if (admins.Count <= 1)
+                throw new BusinessRuleException("Cannot demote the last Admin user.");
+        }
+
         var currentRoles = await userManager.GetRolesAsync(user);
         await userManager.RemoveFromRolesAsync(user, currentRoles);
         await userManager.AddToRoleAsync(user, request.RoleName);
+
+        await tx.CommitAsync(cancellationToken);
 
         return ApiResponse<bool>.SuccessResponse(true, "User updated successfully.");
     }

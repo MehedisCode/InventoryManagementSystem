@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Application.Constants;
 using IMS.Application.Features.Products.Commands;
 using IMS.Application.Features.Products.DTOs;
 using IMS.Application.Features.Products.Queries;
@@ -38,6 +39,7 @@ public class ProductsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<Guid>>> Create([FromBody] CreateProductCommand command)
     {
         var response = await mediator.Send(command);
@@ -48,6 +50,7 @@ public class ProductsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<bool>>> Update(Guid id, [FromBody] UpdateProductCommand command)
     {
         if (id != command.Id) return BadRequest(ApiResponse<bool>.ErrorResponse("ID mismatch."));
@@ -61,6 +64,7 @@ public class ProductsController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Policy = Policies.CanWriteInventory)]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(Guid id)
     {
         var response = await mediator.Send(new DeleteProductCommand(id));

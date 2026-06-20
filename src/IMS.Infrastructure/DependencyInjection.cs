@@ -43,6 +43,7 @@ public static class DependencyInjection
         services.AddScoped<ICurrencyRepository, CurrencyRepository>();
         services.AddScoped<ICompanyRepository, CompanyRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<ITransactionScopeFactory, EfTransactionScopeFactory>();
 
         var redisConnection = configuration["RedisConnection"]
             ?? throw new InvalidOperationException("RedisConnection is missing from configuration.");

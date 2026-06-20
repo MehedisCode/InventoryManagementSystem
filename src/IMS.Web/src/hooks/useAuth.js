@@ -1,6 +1,6 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "../store/authStore";
-import { login as loginApi } from "../api/authApi";
+import { login as loginApi, getMe } from "../api/authApi";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -38,3 +38,21 @@ export const useLogout = () => {
     navigate("/login");
   };
 };
+
+export const useRole = () => useAuthStore((s) => s.user?.role);
+
+export const useHasRole = (required) => {
+  const role = useRole();
+  if (!role) return false;
+  if (Array.isArray(required)) return required.includes(role);
+  return role === required;
+};
+
+export const useMe = (enabled = true) =>
+  useQuery({
+    queryKey: ["auth", "me", useAuthStore.getState().user?.id],
+    queryFn: getMe,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+    enabled,
+  });

@@ -1,4 +1,5 @@
 using IMS.Application.Common;
+using IMS.Domain.Constants;
 using IMS.Domain.Exceptions;
 using IMS.Domain.Entities;
 using MediatR;
@@ -19,7 +20,7 @@ public class DeleteRoleCommandHandler(RoleManager<IdentityRole> roleManager, Use
         if (role == null)
             throw new NotFoundException("Role not found.", "ID");
 
-        if (role.Name is "Admin" or "Manager" or "Staff")
+        if (role.Name.IsSystemRole())
             throw new BusinessRuleException("Cannot delete default system roles.");
 
         if (role.Name != null)
