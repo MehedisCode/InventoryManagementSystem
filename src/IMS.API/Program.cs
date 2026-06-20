@@ -52,9 +52,6 @@ if (!app.Environment.IsProduction())
 
 app.UseCors("ReactPolicy");
 
-app.UseDefaultFiles();
-app.UseStaticFiles();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -76,27 +73,36 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
-    var adminEmail = "admin@ims.com";
-    if (await userManager.FindByEmailAsync(adminEmail) == null)
+    async Task EnsureDemoUserAsync(string email, string fullName, string password, string role)
     {
-        var adminUser = new ApplicationUser
+        if (await userManager.FindByEmailAsync(email) != null)
         {
-            UserName = adminEmail,
-            Email = adminEmail,
-            FullName = "System Admin",
-            IsActive = true
-        };
-
-        var result = await userManager.CreateAsync(adminUser, "Admin@123");
-        if (result.Succeeded)
-        {
-            await userManager.AddToRoleAsync(adminUser, "Admin");
+            Log.Information("Demo user {Email} already exists, skipping", email);
+            return;
         }
+        var u = new ApplicationUser
+        {
+            UserName = email,
+            Email = email,
+            FullName = fullName,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        var result = await userManager.CreateAsync(u, password);
+        if (!result.Succeeded)
+        {
+            Log.Warning("Failed to seed demo user {Email}: {Errors}", email, string.Join("; ", result.Errors));
+            return;
+        }
+        await userManager.AddToRoleAsync(u, role);
+        Log.Information("Seeded demo user {Email} with role {Role}", email, role);
     }
+
+    await EnsureDemoUserAsync("admin@ims.com", "System Admin", "Admin@123", "Admin");
+    await EnsureDemoUserAsync("manager@ims.com", "Demo Manager", "Manager@123", "Manager");
+    await EnsureDemoUserAsync("staff@ims.com", "Demo Staff", "Staff@123", "Staff");
 }
 
 app.MapControllers();
-
-app.MapFallbackToFile("index.html");
 
 app.Run();

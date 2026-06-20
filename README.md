@@ -38,14 +38,19 @@ From the solution root:
 docker compose up --build
 ```
 
-### Default credentials
+### Demo accounts
 
-The API seeds an admin user on first startup:
+The following accounts are seeded automatically on first start so the app is immediately usable:
 
-- **Email:** `admin@ims.com`
-- **Password:** `Admin@123`
+| Role    | Email             | Password      |
+|---------|-------------------|---------------|
+| Admin   | `admin@ims.com`   | `Admin@123`   |
+| Manager | `manager@ims.com` | `Manager@123` |
+| Staff   | `staff@ims.com`   | `Staff@123`   |
 
-Roles created: `Admin`, `Manager`, `Staff`.
+Roles created: `Admin`, `Manager`, `Staff` — each demo account above is assigned to the matching role.
+
+These credentials are intentionally committed for showcase purposes only.
 
 ## Local development (without Docker)
 
